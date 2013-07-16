@@ -73,7 +73,7 @@ int PS_Particle::get_time_to(Position q) {
 	// t is going, we can use s = ut+1/2at^2 to work out the time, as we know the 
 	// distance, starting speed and acceleration	
 	
-	float gradiant = force.angle / 50;
+	float gradiant = this->force.angle / 50;
 	
 	// y = x + c
 	// c = x - y
@@ -81,6 +81,7 @@ int PS_Particle::get_time_to(Position q) {
 	
 	// y = gradiant * x + c
 	float y = (gradiant * q.x) + c;
+	printf("Form: y = %fx + %f\nAngle: %f PosX: %f PosY: %f\n", gradiant, c, force.angle, pos.x, pos.y);
 	if (y == q.y) {
 		////It is on the line!!!
 		//int s = q.x - pos.x; //Work out the distance on the x axis
@@ -121,7 +122,7 @@ int main () {
 	q.y = 0;
 	l.set_position(q);
 	Force p;
-	p.angle = 0;
+	p.angle = 10;
 	p.force = 1;
 	p.speed = 10;
 	l.set_force(p);
