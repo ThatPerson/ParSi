@@ -91,6 +91,37 @@ Force balance_force(Force a, Force b) {
 	return result;
 }
 
+Position wait(Particle a, float time) {
+	// s = ut+1/2at^2
+	float s = (a.force.force * (time*time))/2;
+	float xinc, yinc;
+	if (a.force.angle < 90) {
+		xinc = s * sin(a.force.angle);
+		yinc = s * cos(a.force.angle);
+	} else if (a.force.angle < 180) {
+		float q;
+		q = a.force.angle - 90;
+		xinc = s * cos(q);
+		yinc = s * sin(q);
+	} else if (a.force.angle < 270) {
+		float q = a.force.angle - 180;
+		xinc = -(s * sin(q));
+		yinc = -(s * cos(q));
+	} else {
+		float q = a.force.angle - 270;
+		xinc = -(s * cos(q));
+		yinc = s * sin(q);
+	}
+	Position l;
+	l.x = a.pos.x + xinc;
+	l.y = a.pos.y + yinc;
+	return l;
+}
+
+void print_position(Position l) {
+	printf("Position:\n\tX: %f\n\tY: %f\n", l.x, l.y);
+}
+
 void print_force(Force i) {
 	printf("Particle\n\tPower: %fN\n\tAngle: %f\n", i.force, i.angle);
 }
@@ -103,14 +134,16 @@ int main(int argc, char * argv) {
 	p.force.force = 5;
 
 	Force l, q;
-	q.force = 12;
-	q.angle = 30;
-	l.force = 6;
-	l.angle = 200;
+	q.force = 14;
+	q.angle = 110;
+	l.force = 8;
+	l.angle = 210;
 
 	Force res = balance_force(q, l);
 	print_force(q);
 	print_force(l);
 	print_force(res);
+
+	print_position(wait(p, 2));
 
 }
