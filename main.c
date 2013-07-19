@@ -87,7 +87,18 @@ Force balance_force(Force a, Force b) {
 	Force result;
 
 	result.force = sqrt((new.x*new.x)+(new.y*new.y));
-	result.angle = to_degrees(atan(new.y/new.x));
+	float tmpangle = to_degrees(atan(new.y/new.x));
+	if (new.x >= 0 && new.y >= 0) {
+		tmpangle = tmpangle;
+		// We are in the top right
+	} else if (new.x >= 0 && new.y <= 0) {
+		tmpangle = 90 + tmpangle;
+	} else if (new.x <= 0 && new.y <= 0) {
+		tmpangle = 180 + tmpangle;
+	} else if (new.x <= 0 && new.y >= 0) {
+		tmpangle = 270 + tmpangle;
+	}
+	result.angle = tmpangle;
 	return result;
 }
 
