@@ -1,3 +1,26 @@
+/*
+ * main.c
+ * 
+ * Copyright 2013 Ben Tatman <ben@tatmans.co.uk>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
+ * 
+ */
+
 #include <stdio.h>
 #include <math.h>
 
@@ -18,6 +41,11 @@ typedef struct {
 	Position pos;
 } Particle;
 
+typedef struct {
+	Force x;
+	Force y;
+} Resolved;
+
 float to_radians(float degrees) {
 	// degrees * pi/180
 	return degrees * PI / 180;
@@ -29,6 +57,31 @@ float to_degrees(float radians) {
 	//=B2/(D1/180)
 }
 
+Resolved resolve(Force f) {
+	Resolved retur;
+	retur.x.angle = 90; //It is 90 degrees from the y axis
+	retur.y.angle = 0;
+	
+	if (f.angle >= 0 && f.angle < 90) {
+		retur.x.force = f.force * sin(to_radians(f.angle));
+		retur.y.force = f.force * cos(to_radians(f.angle));
+	} else if (f.angle >= 90 && f.angle < 180) {
+		f.angle = f.angle - 90;
+		retur.x.force = f.force * cos(to_radians(f.angle));
+		retur.y.force = -f.force * sin(to_radians(f.angle));
+	} else if (f.angle >= 180 && f.angle < 270) {
+		f.angle = f.angle - 180;
+		retur.x.force = -f.force * sin(to_radians(f.angle));
+		retur.y.force = -f.force * cos(to_radians(f.angle));
+	} else {
+		f.angle = f.angle - 270;
+		retur.x.force = -f.force * cos(to_radians(f.angle));
+		retur.y.force = f.force * sin(to_radians(f.angle));
+	}
+	
+	return retur;
+}
+
 float absol(float in) {
 	float new = in;
 	if (in < 0) {
@@ -38,57 +91,15 @@ float absol(float in) {
 }
 
 Force balance_force(Force a, Force b) {
-	//For Force a
-	Position ax;
-	
-	if (a.angle >= 0 && a.angle < 90) {
-		ax.x = a.force * sin(to_radians(a.angle));
-		ax.y = a.force * cos(to_radians(a.angle));
-		printf("1 %f %f\n", ax.x, ax.y);
-	} else if (a.angle >= 90 && a.angle < 180) {
-		a.angle = a.angle - 90;
-		ax.x = a.force * cos(to_radians(a.angle));
-		ax.y = -a.force * sin(to_radians(a.angle));
-		printf("2 %f %f\n", ax.x, ax.y);
-	} else if (a.angle >= 180 && a.angle < 270) {
-		a.angle = a.angle - 180;
-		ax.x = -a.force * sin(to_radians(a.angle));
-		ax.y = -a.force * cos(to_radians(a.angle));
-		printf("3 %f %f\n", ax.x, ax.y);
-	} else {
-		a.angle = a.angle - 270;
-		ax.x = -a.force * cos(to_radians(a.angle));
-		ax.y = a.force * sin(to_radians(a.angle));
-		printf("4 %f %f\n", ax.x, ax.y);
-	}
 
-	//For Force b
-	Position bx;
-	
-	if (b.angle >= 0 && b.angle < 90) {
-		bx.x = b.force * sin(to_radians(b.angle));
-		bx.y = b.force * cos(to_radians(b.angle));
-		printf("1 %f %f\n", bx.x, bx.y);
-	} else if (b.angle >= 90 && b.angle < 180) {
-		b.angle = b.angle - 90;
-		bx.x = b.force * cos(to_radians(b.angle));
-		bx.y = -b.force * sin(to_radians(b.angle));
-		printf("2 %f %f\n", bx.x, bx.y);
-	} else if (b.angle >= 180 && b.angle < 270) {
-		b.angle = b.angle - 180;
-		bx.x = -b.force * sin(to_radians(b.angle));
-		bx.y = -b.force * cos(to_radians(b.angle));
-		printf("3 %f %f\n", bx.x, bx.y);
-	} else {
-		b.angle = b.angle - 270;
-		bx.x = -b.force * cos(to_radians(b.angle));
-		bx.y = b.force * sin(to_radians(b.angle));
-		printf("4 %f %f\n", bx.x, bx.y);
-	}
+
+	Resolved ax = resolve(a);
+	Resolved bx = resolve(b);
+
 
 	Position new;
-	new.x = ax.x + bx.x;
-	new.y = ax.y + bx.y;
+	new.x = ax.x.force + bx.x.force;
+	new.y = ax.y.force + bx.y.force;
 
 	printf("New %f %f\n", new.x, new.y);
 
