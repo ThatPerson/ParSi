@@ -29,6 +29,14 @@ float to_degrees(float radians) {
 	//=B2/(D1/180)
 }
 
+float absol(float in) {
+	float new = in;
+	if (in < 0) {
+		new = new - (2*in); // two times the number would get enough to make up for each side, then - because - - is +. For example, if in = -3, then we get -3 - (-3*2), so -3 - - 6, so -3 + 6, so 3.
+	}
+	return new; //If value is +, then we do nothing.
+}
+
 Force balance_force(Force a, Force b) {
 	//For Force a
 	Position ax;
@@ -86,17 +94,22 @@ Force balance_force(Force a, Force b) {
 
 	Force result;
 
-	result.force = sqrt((new.x*new.x)+(new.y*new.y));
-	float tmpangle = to_degrees(atan(new.y/new.x));
+	result.force = sqrt((new.x*new.x)+(new.y*new.y)); // if the values are negative then them times themselves is positive. For it to be under 0, such as sqrt(-1) it would need to be a complex number, hence no validation
+	float tmpangle;
+	printf("New %f %f\n", absol(new.x), absol(new.y));
 	if (new.x >= 0 && new.y >= 0) {
-		tmpangle = tmpangle;
+		printf("0 - 90\n");
+		tmpangle = to_degrees(atan(absol(new.x)/absol(new.y)));
 		// We are in the top right
 	} else if (new.x >= 0 && new.y <= 0) {
-		tmpangle = 90 + tmpangle;
+		printf("90 - 180\n");
+		tmpangle = to_degrees(atan(absol(new.y)/absol(new.x))) + 90;
 	} else if (new.x <= 0 && new.y <= 0) {
-		tmpangle = 180 + tmpangle;
+		printf("180 - 270\n");
+		tmpangle = to_degrees(atan(absol(new.x)/absol(new.y))) + 180;
 	} else if (new.x <= 0 && new.y >= 0) {
-		tmpangle = 270 + tmpangle;
+		printf("270 - 360\n");
+		tmpangle = to_degrees(atan(absol(new.y)/absol(new.x))) + 270;
 	}
 	result.angle = tmpangle;
 	return result;
@@ -155,10 +168,7 @@ int main(int argc, char * argv) {
 	print_force(l);
 	print_force(res);
 
-<<<<<<< HEAD
-}
-=======
 	print_position(wait(p, 2));
 
 }
->>>>>>> 87a1642764fd2fdd94f71b37c462a00c72896c23
+
