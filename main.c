@@ -95,7 +95,8 @@ Resolved resolve(Force f) {
 float absol(float in) {
 	float new = in;
 	if (in < 0) {
-		new = new - (2*in); // two times the number would get enough to make up for each side, then - because - - is +. For example, if in = -3, then we get -3 - (-3*2), so -3 - - 6, so -3 + 6, so 3.
+		//new = new - (2*in); // two times the number would get enough to make up for each side, then - because - - is +. For example, if in = -3, then we get -3 - (-3*2), so -3 - - 6, so -3 + 6, so 3.
+		new = 0 - in;
 	}
 	return new; //If value is +, then we do nothing.
 }
