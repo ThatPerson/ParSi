@@ -53,6 +53,7 @@ typedef struct {
 	int is_collision;
 } TestCase;
 
+
 float to_radians(float degrees) {
 	// degrees * pi/180
 	return degrees * PI / 180;
@@ -63,6 +64,8 @@ float to_degrees(float radians) {
 
 	//=B2/(D1/180)
 }
+
+
 
 Resolved resolve(Force f) {
 	Resolved retur;
@@ -76,8 +79,6 @@ Resolved resolve(Force f) {
 		f.angle = f.angle - 90;
 		retur.x.force = f.force * cos(to_radians(f.angle));
 		retur.y.force = -f.force * sin(to_radians(f.angle));
-		printf("SIN(%f) = %f\nCOS(%f) = %f\n", to_radians(f.angle), sin(to_radians(f.angle)), to_radians(f.angle), cos(to_radians(f.angle)));
-		printf("FForce = %f\nretur.x.force = %f\nretur.y.force = %f\n", f.force, retur.x.force, retur.y.force);
 	} else if (f.angle >= 180 && f.angle < 270) {
 		f.angle = f.angle - 180;
 		retur.x.force = -f.force * sin(to_radians(f.angle));
@@ -110,13 +111,13 @@ Force balance_force(Force a, Force b) {
 	new.x = ax.x.force + bx.x.force;
 	new.y = ax.y.force + bx.y.force;
 
-	printf("New %f %f\n", new.x, new.y);
+	//printf("New %f %f\n", new.x, new.y);
 
 	Force result;
 
 	result.force = sqrt((new.x*new.x)+(new.y*new.y)); // if the values are negative then them times themselves is positive. For it to be under 0, such as sqrt(-1) it would need to be a complex number, hence no validation
 	float tmpangle;
-	printf("New %f %f\n", absol(new.x), absol(new.y));
+	//printf("New %f %f\n", absol(new.x), absol(new.y));
 	if (new.x >= 0 && new.y >= 0) {
 		printf("0 - 90\n");
 		tmpangle = to_degrees(atan(absol(new.x)/absol(new.y)));
@@ -166,25 +167,25 @@ int poscmp(Position a, Position b) {
 TestCase is_collision(TestCase q) {
 	float xdist = absol(q.a.pos.x - q.b.pos.x);
 	float ydist = absol(q.a.pos.y - q.b.pos.y);
-	printf("XDIST %f YDIST %f\n", xdist, ydist);
+	//printf("XDIST %f YDIST %f\n", xdist, ydist);
 	TestCase retur = q;
 	retur.is_collision = 0;
 	if (xdist > ydist) {
-		printf("H");
+		//printf("H");
 		Resolved ar, br;
 		ar = resolve(q.a.force);
 		br = resolve(q.b.force);
-		printf("ar x %f ar y %f, br x %f br y %f\n", ar.x.force, ar.y.force, br.x.force, br.y.force); 
+		//printf("ar x %f ar y %f, br x %f br y %f\n", ar.x.force, ar.y.force, br.x.force, br.y.force); 
 		float dt = (xdist/(absol(ar.x.force - br.x.force))) * absol(ar.x.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
 		float l = 2 * dt;
 		float z = l / ar.x.force;
-		printf("%f\n", ar.x.force);
+		//printf("%f\n", ar.x.force);
 		float t = sqrt(z);
 		
 		Position ac = wait(q.a, t);
 		Position bc = wait(q.b, t);
-		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
-						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
+		//printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
+						//ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
 		ac.x = floorf(ac.x * 100+0.5)/100;
 		ac.y = floorf(ac.y * 100+0.5)/100;
 		bc.x = floorf(bc.x * 100+0.5)/100;
@@ -194,7 +195,7 @@ TestCase is_collision(TestCase q) {
 			retur.is_collision = 1;
 		}
 	} else {
-		printf("Q");
+		//printf("Q");
 		Resolved ar, br;
 		ar = resolve(q.a.force);
 		br = resolve(q.b.force);
@@ -210,11 +211,11 @@ TestCase is_collision(TestCase q) {
 		float t = sqrt(z);
 		
 		Position ac = wait(q.a, t);
-		printf("q.a.force.force %f q.a.force.angle %f q.a.pos.x %f q.a.pos.y %f", q.a.force.force, q.a.force.angle, q.a.pos.x, q.a.pos.y);
+		//printf("q.a.force.force %f q.a.force.angle %f q.a.pos.x %f q.a.pos.y %f", q.a.force.force, q.a.force.angle, q.a.pos.x, q.a.pos.y);
 		Position bc = wait(q.b, t);
 		
-		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
-						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
+		//printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
+		//				ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
 		
 		/*float ydistc = ac.x+bc.y;
 		float xdistc = ac.y+bc.x;
