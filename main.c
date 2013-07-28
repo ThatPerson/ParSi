@@ -279,6 +279,6 @@ int main(int argc, char * argv) {
 	
 	qlo = is_collision(qlo);
 	
-	printf("%d: %f\n", qlo.is_collision, qlo.time);
+	printf("%d: %f\n", qlo.is_collision, (qlo.is_collision == 1) ? qlo.time : 0);
 }
 
