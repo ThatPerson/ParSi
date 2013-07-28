@@ -137,25 +137,11 @@ Force balance_force(Force a, Force b) {
 
 Position wait(Particle a, float time) {
 	// s = ut+1/2at^2
-	float s = (a.force.force * (time*time))/2;
 	float xinc, yinc;
-	if (a.force.angle < 90) {
-		xinc = s * sin(a.force.angle);
-		yinc = s * cos(a.force.angle);
-	} else if (a.force.angle < 180) {
-		float q;
-		q = a.force.angle - 90;
-		xinc = s * cos(q);
-		yinc = s * sin(q);
-	} else if (a.force.angle < 270) {
-		float q = a.force.angle - 180;
-		xinc = -(s * sin(q));
-		yinc = -(s * cos(q));
-	} else {
-		float q = a.force.angle - 270;
-		xinc = -(s * cos(q));
-		yinc = s * sin(q);
-	}
+	Resolved x = resolve(a.force);
+	//s = 1/2at^2
+	xinc = ((x.x.force*time*time)/2);
+	yinc = ((x.y.force*time*time)/2);
 	Position l;
 	l.x = a.pos.x + xinc;
 	l.y = a.pos.y + yinc;
@@ -199,7 +185,11 @@ TestCase is_collision(TestCase q) {
 		Position bc = wait(q.b, t);
 		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
 						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
-		if (((ac.x+bc.y) == ydist) && ((ac.y + bc.x) == xdist)) {
+		ac.x = floorf(ac.x * 100+0.5)/100;
+		ac.y = floorf(ac.y * 100+0.5)/100;
+		bc.x = floorf(bc.x * 100+0.5)/100;
+		bc.y = floorf(bc.y * 100+0.5)/100;
+		if ((ac.x == bc.x) && (ac.y == bc.y)) {
 			retur.time = t;
 			retur.is_collision = 1;
 		}
@@ -209,17 +199,39 @@ TestCase is_collision(TestCase q) {
 		ar = resolve(q.a.force);
 		br = resolve(q.b.force);
 		float dt = (ydist/(absol(ar.y.force - br.y.force))) * absol(br.y.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
+		
+		// s = 1/2at^2
+		// dt = s
+		// l = at^2
+		// z = t^2
+		
 		float l = 2 * dt;
 		float z = l / br.y.force;
 		float t = sqrt(z);
 		
 		Position ac = wait(q.a, t);
+		printf("q.a.force.force %f q.a.force.angle %f q.a.pos.x %f q.a.pos.y %f", q.a.force.force, q.a.force.angle, q.a.pos.x, q.a.pos.y);
 		Position bc = wait(q.b, t);
 		
 		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
 						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
 		
-		if (poscmp(ac, bc) == 1) {
+		/*float ydistc = ac.x+bc.y;
+		float xdistc = ac.y+bc.x;
+		
+		ydistc = floorf(ydistc * 100 + 0.5) / 100;
+		xdistc = floorf(xdistc * 100 + 0.5) / 100;
+
+		printf("xdistc %f ydistc %f\n", xdistc, ydistc);
+		
+		if ((ydistc == ydist) && (xdistc == xdist)) {*/
+		
+		ac.x = floorf(ac.x * 100+0.5)/100;
+		ac.y = floorf(ac.y * 100+0.5)/100;
+		bc.x = floorf(bc.x * 100+0.5)/100;
+		bc.y = floorf(bc.y * 100+0.5)/100;
+		
+		if ((ac.x == bc.x) && (ac.y == bc.y)) {
 			retur.time = t;
 			retur.is_collision = 1;
 		}
@@ -250,13 +262,13 @@ int main(int argc, char * argv) {
 	Particle a, b;
 	
 	a.pos.x = 0;
-	a.pos.y = 25;
+	a.pos.y = 0;
 	a.force.angle = 135;
-	a.force.force = 2;
+	a.force.force = 4;
 	
 	b.pos.x = 25;
 	b.pos.y = 0;
-	b.force.angle = 315;
+	b.force.angle = 225;
 	b.force.force = 4;
 	
 	TestCase qlo;
