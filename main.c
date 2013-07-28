@@ -46,6 +46,13 @@ typedef struct {
 	Force y;
 } Resolved;
 
+typedef struct {
+	Particle a;
+	Particle b;
+	float time;
+	int is_collision;
+} TestCase;
+
 float to_radians(float degrees) {
 	// degrees * pi/180
 	return degrees * PI / 180;
@@ -69,6 +76,8 @@ Resolved resolve(Force f) {
 		f.angle = f.angle - 90;
 		retur.x.force = f.force * cos(to_radians(f.angle));
 		retur.y.force = -f.force * sin(to_radians(f.angle));
+		printf("SIN(%f) = %f\nCOS(%f) = %f\n", to_radians(f.angle), sin(to_radians(f.angle)), to_radians(f.angle), cos(to_radians(f.angle)));
+		printf("FForce = %f\nretur.x.force = %f\nretur.y.force = %f\n", f.force, retur.x.force, retur.y.force);
 	} else if (f.angle >= 180 && f.angle < 270) {
 		f.angle = f.angle - 180;
 		retur.x.force = -f.force * sin(to_radians(f.angle));
@@ -161,6 +170,63 @@ void print_force(Force i) {
 	printf("Particle\n\tPower: %fN\n\tAngle: %f\n", i.force, i.angle);
 }
 
+int poscmp(Position a, Position b) {
+	if ((a.x == b.x) && (a.y == b.y)) {
+		return 1;
+	}
+	return -1;
+}
+
+TestCase is_collision(TestCase q) {
+	float xdist = absol(q.a.pos.x - q.b.pos.x);
+	float ydist = absol(q.a.pos.y - q.b.pos.y);
+	printf("XDIST %f YDIST %f\n", xdist, ydist);
+	TestCase retur = q;
+	retur.is_collision = 0;
+	if (xdist > ydist) {
+		printf("H");
+		Resolved ar, br;
+		ar = resolve(q.a.force);
+		br = resolve(q.b.force);
+		printf("ar x %f ar y %f, br x %f br y %f\n", ar.x.force, ar.y.force, br.x.force, br.y.force); 
+		float dt = (xdist/(absol(ar.x.force - br.x.force))) * absol(ar.x.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
+		float l = 2 * dt;
+		float z = l / ar.x.force;
+		printf("%f\n", ar.x.force);
+		float t = sqrt(z);
+		
+		Position ac = wait(q.a, t);
+		Position bc = wait(q.b, t);
+		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
+						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
+		if (((ac.x+bc.y) == ydist) && ((ac.y + bc.x) == xdist)) {
+			retur.time = t;
+			retur.is_collision = 1;
+		}
+	} else {
+		printf("Q");
+		Resolved ar, br;
+		ar = resolve(q.a.force);
+		br = resolve(q.b.force);
+		float dt = (ydist/(absol(ar.y.force - br.y.force))) * absol(br.y.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
+		float l = 2 * dt;
+		float z = l / br.y.force;
+		float t = sqrt(z);
+		
+		Position ac = wait(q.a, t);
+		Position bc = wait(q.b, t);
+		
+		printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
+						ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
+		
+		if (poscmp(ac, bc) == 1) {
+			retur.time = t;
+			retur.is_collision = 1;
+		}
+	}
+	return retur;
+}
+
 int main(int argc, char * argv) {
 	Particle p;
 	p.pos.x = 10;
@@ -181,5 +247,24 @@ int main(int argc, char * argv) {
 
 	print_position(wait(p, 2));
 
+	Particle a, b;
+	
+	a.pos.x = 0;
+	a.pos.y = 25;
+	a.force.angle = 135;
+	a.force.force = 2;
+	
+	b.pos.x = 25;
+	b.pos.y = 0;
+	b.force.angle = 315;
+	b.force.force = 4;
+	
+	TestCase qlo;
+	qlo.a = a;
+	qlo.b = b;
+	
+	qlo = is_collision(qlo);
+	
+	printf("%d: %f\n", qlo.is_collision, qlo.time);
 }
 
