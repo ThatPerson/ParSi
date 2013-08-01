@@ -257,6 +257,13 @@ Force new_force(float force, float angle) {
     return f;
 }
 
+Position new_position(float x, float y) {
+    Position p;
+    p.x = x;
+    p.y = y;
+    return p;
+}
+
 int main(int argc, char * argv) {
 	Particle p = new_particle(10, 40, 5, 0);
 
