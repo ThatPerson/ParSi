@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define PI 3.14159265358
+#define PI 3.1415926535897
 
 typedef struct {
 	float x;
@@ -241,18 +241,27 @@ TestCase is_collision(TestCase q) {
 	return retur;
 }
 
-int main(int argc, char * argv) {
-	Particle p;
-	p.pos.x = 10;
-	p.pos.y = 40;
-	p.force.angle = 0;
-	p.force.force = 5;
+Particle new_particle(float x, float y, float force, float angle) {
+    Particle t;
+    t.pos.x = x;
+    t.pos.y = y;
+    t.force.force = force;
+    t.force.angle = angle;
+    return t;
+}
 
-	Force l, q;
-	q.force = 14;
-	q.angle = 110;
-	l.force = 8;
-	l.angle = 210;
+Force new_force(float force, float angle) {
+    Force f;
+    f.force = force;
+    f.angle = angle;
+    return f;
+}
+
+int main(int argc, char * argv) {
+	Particle p = new_particle(10, 40, 5, 0);
+
+
+	Force l = new_force(14,110), q = new_force(8, 210);
 
 	Force res = balance_force(q, l);
 	print_force(q);
@@ -261,17 +270,10 @@ int main(int argc, char * argv) {
 
 	print_position(wait(p, 2));
 
-	Particle a, b;
-	
-	a.pos.x = 0;
-	a.pos.y = 0;
-	a.force.angle = 135;
-	a.force.force = 4;
-	
-	b.pos.x = 25;
-	b.pos.y = 0;
-	b.force.angle = 225;
-	b.force.force = 4;
+	Particle a = new_particle(0,0,4,135);
+    Particle b = new_particle(25,0,4,225);
+    
+    // 0 90 180 270
 	
 	TestCase qlo;
 	qlo.a = a;
