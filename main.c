@@ -42,6 +42,7 @@ typedef struct {
 	float speed;
 	Force force;
 	Position pos;
+	int shown;
 } Particle;
 
 typedef struct {
@@ -250,6 +251,7 @@ Particle new_particle(float x, float y, float force, float angle) {
     t.pos.y = y;
     t.force.force = force;
     t.force.angle = angle;
+    t.shown = 1;
     return t;
 }
 
@@ -275,7 +277,9 @@ void tabulate_particles(Particle p[], int count, float time) {
 	}
 	printf("\n");
 	for (i = 0; i < count; i++) {
-		printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
+		if (p[i].shown == 1) {
+			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
+		}
 	}
 	printf("\n");
 }	
@@ -284,21 +288,27 @@ void wait_all(Particle p[], int count, float time) {
 	int i, o;
 	for (i = 0; i < count; i++) {
 		for (o = i; o < count; o++) {
-			TestCase qlo;
-			qlo.a = p[i];
-			qlo.b = p[o];
-			qlo = is_collision(qlo);
-			if (qlo.is_collision == 1) {
-				if (qlo.time < time) {
-					p[i].force = balance_force(p[i].force, p[o].force);
-					p[o] = new_particle(0,0,0,0);
+			if (p[0].shown == 1 && p[1].shown == 1) {
+				TestCase qlo;
+				qlo.a = p[i];
+				qlo.b = p[o];
+				qlo = is_collision(qlo);
+				if (qlo.is_collision == 1) {
+					if (qlo.time < time) {
+						p[i].force = balance_force(p[i].force, p[o].force);
+						p[o] = new_particle(0,0,0,0);
+						p[o].shown = -1;
+					}
 				}
-			}
+			}		
 		}
 	}
 	for (i = 0; i < count; i++) {
-		p[i].pos = wait(p[i], time);
+		if (p[i].shown == 1) {
+			p[i].pos = wait(p[i], time);
+		}
 	}
+
 	tabulate_particles(p, count, time);
 }						
 
