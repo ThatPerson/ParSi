@@ -267,19 +267,20 @@ Position new_position(float x, float y) {
     return p;
 }
 
-void tabulate_particles(Particle p[], int count) {
-	printf("%10s %10s %10s %10s %10s %10s\n", "Name", "X", "Y", "Force", "Angle", "Speed");
+void tabulate_particles(Particle p[], int count, float time) {
+	printf("%10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed");
 	int i;
-	for (i = 0; i < 65; i++) {
+	for (i = 0; i < 76; i++) {
 		printf("-");
 	}
 	printf("\n");
 	for (i = 0; i < count; i++) {
-		printf("%10s %10f %10f %10f %10f %10f\n", p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
+		printf("%10f %10s %10f %10f %10f %10f %10f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
 	}
+	printf("\n");
 }	
 
-void wait_all(Particle p[], int count, int time) {
+void wait_all(Particle p[], int count, float time) {
 	int i, o;
 	for (i = 0; i < count; i++) {
 		for (o = i; o < count; o++) {
@@ -293,9 +294,11 @@ void wait_all(Particle p[], int count, int time) {
 				}
 			}
 		}
+	}
+	for (i = 0; i < count; i++) {
 		p[i].pos = wait(p[i], time);
 	}
-	tabulate_particles(p, count);
+	tabulate_particles(p, count, time);
 }						
 
 int main(int argc, char * argv) {
@@ -313,8 +316,8 @@ int main(int argc, char * argv) {
 	strcpy(p[3].name, "Miss");
 	p[3].speed = 0;
 	int i;
-	for (i = 0; i < 3; i++) {
-		wait_all(p, 4, i*0.5);
+	for (i = 0; i < 90; i++) {
+		wait_all(p, 4, i*0.1);
 	}
 
 }
