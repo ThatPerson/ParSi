@@ -290,6 +290,7 @@ void wait_all(Particle p[], int count, float time) {
 			qlo = is_collision(qlo);
 			if (qlo.is_collision == 1) {
 				if (qlo.time < time) {
+					p[i].force = balance_force(p[i].force, p[o].force);
 					p[o] = new_particle(0,0,0,0);
 				}
 			}
@@ -319,6 +320,5 @@ int main(int argc, char * argv) {
 	for (i = 0; i < 90; i++) {
 		wait_all(p, 4, i*0.1);
 	}
-
 }
 
