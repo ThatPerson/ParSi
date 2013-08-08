@@ -246,27 +246,27 @@ TestCase is_collision(TestCase q) {
 }
 
 Particle new_particle(float x, float y, float force, float angle) {
-    Particle t;
-    t.pos.x = x;
-    t.pos.y = y;
-    t.force.force = force;
-    t.force.angle = angle;
-    t.shown = 1;
-    return t;
+	Particle t;
+	t.pos.x = x;
+	t.pos.y = y;
+	t.force.force = force;
+	t.force.angle = angle;
+	t.shown = 1;
+	return t;
 }
 
 Force new_force(float force, float angle) {
-    Force f;
-    f.force = force;
-    f.angle = angle;
-    return f;
+	Force f;
+	f.force = force;
+	f.angle = angle;
+	return f;
 }
 
 Position new_position(float x, float y) {
-    Position p;
-    p.x = x;
-    p.y = y;
-    return p;
+	Position p;
+	p.x = x;
+	p.y = y;
+	return p;
 }
 
 void tabulate_particles(Particle p[], int count, float time) {
