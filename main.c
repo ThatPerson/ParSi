@@ -25,7 +25,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#define PI 3.1415926535897
 
 typedef struct {
 	float x;
@@ -60,11 +59,11 @@ typedef struct {
 
 float to_radians(float degrees) {
 	// degrees * pi/180
-	return degrees * PI / 180;
+	return degrees * M_PI / 180;
 }
 
 float to_degrees(float radians) {
-	return radians / (PI/180);
+	return radians / (M_PI/180);
 
 	//=B2/(D1/180)
 }
