@@ -275,7 +275,7 @@ void tabulate_particles(Particle p[], int count, float time) {
 	}
 	printf("\n");
 	for (i = 0; i < count; i++) {
-		printf("%10f %10s %10f %10f %10f %10f %10f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
+		printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
 	}
 	printf("\n");
 }	
@@ -309,7 +309,7 @@ int main(int argc, char * argv) {
 	p[1] = new_particle(25,0,4,315);
 	strcpy(p[1].name,"Sim");
 	p[1].speed = 0;
-	p[2] = new_particle(0, 30, 2, 90);
+	p[2] = new_particle(0, 30, 20, 90);
 	p[2].speed = 0;
 	strcpy(p[2].name, "Followup");
 	p[3] = new_particle(0, 40, 2, 90);
