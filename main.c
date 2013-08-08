@@ -23,7 +23,8 @@
 
 #include <stdio.h>
 #include <math.h>
-
+#include <string.h>
+#include <stdlib.h>
 #define PI 3.1415926535897
 
 typedef struct {
@@ -37,6 +38,8 @@ typedef struct {
 } Force;
 
 typedef struct {
+	char name[500];
+	float speed;
 	Force force;
 	Position pos;
 } Particle;
@@ -264,30 +267,55 @@ Position new_position(float x, float y) {
     return p;
 }
 
+void tabulate_particles(Particle p[], int count) {
+	printf("%10s %10s %10s %10s %10s %10s\n", "Name", "X", "Y", "Force", "Angle", "Speed");
+	int i;
+	for (i = 0; i < 65; i++) {
+		printf("-");
+	}
+	printf("\n");
+	for (i = 0; i < count; i++) {
+		printf("%10s %10f %10f %10f %10f %10f\n", p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed);
+	}
+}	
+
+void wait_all(Particle p[], int count, int time) {
+	int i, o;
+	for (i = 0; i < count; i++) {
+		for (o = i; o < count; o++) {
+			TestCase qlo;
+			qlo.a = p[i];
+			qlo.b = p[o];
+			qlo = is_collision(qlo);
+			if (qlo.is_collision == 1) {
+				if (qlo.time < time) {
+					p[o] = new_particle(0,0,0,0);
+				}
+			}
+		}
+		p[i].pos = wait(p[i], time);
+	}
+	tabulate_particles(p, count);
+}						
+
 int main(int argc, char * argv) {
-	Particle p = new_particle(10, 40, 5, 0);
+	Particle p[4];
+	p[0] = new_particle(0,0,4,45);
+	strcpy(p[0].name,"Test");
+	p[0].speed = 0;
+	p[1] = new_particle(25,0,4,315);
+	strcpy(p[1].name,"Sim");
+	p[1].speed = 0;
+	p[2] = new_particle(0, 30, 2, 90);
+	p[2].speed = 0;
+	strcpy(p[2].name, "Followup");
+	p[3] = new_particle(0, 40, 2, 90);
+	strcpy(p[3].name, "Miss");
+	p[3].speed = 0;
+	int i;
+	for (i = 0; i < 3; i++) {
+		wait_all(p, 4, i*0.5);
+	}
 
-
-	Force l = new_force(14,110), q = new_force(8, 210);
-
-	Force res = balance_force(q, l);
-	print_force(q);
-	print_force(l);
-	print_force(res);
-
-	print_position(wait(p, 2));
-
-	Particle a = new_particle(0,0,4,135);
-    Particle b = new_particle(25,0,4,225);
-    
-    // 0 90 180 270
-	
-	TestCase qlo;
-	qlo.a = a;
-	qlo.b = b;
-	
-	qlo = is_collision(qlo);
-	
-	printf("%d: %f\n", qlo.is_collision, (qlo.is_collision == 1) ? qlo.time : 0);
 }
 
