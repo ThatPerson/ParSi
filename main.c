@@ -302,13 +302,19 @@ void wait_all(Particle p[], int count, float time) {
 			}		
 		}
 	}
+	printf("%10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed");
+	for (i = 0; i < 76; i ++) {
+		printf("-");
+	}
+	printf("\n");
+	Position tmp;
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			p[i].pos = wait(p[i], time);
+			tmp = wait(p[i], time);
+			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, tmp.x, tmp.y, p[i].force.force, p[i].force.angle, p[i].speed);
 		}
 	}
 
-	tabulate_particles(p, count, time);
 }						
 
 int main(int argc, char * argv) {
