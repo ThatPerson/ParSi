@@ -280,40 +280,39 @@ void tabulate_particles(Particle p[], int count, float time) {
 }	
 
 float get_speed(Particle a, float time) {
-	return 1;
+	// v = u + at. a = a.force.force. t = time. u = a.speed.
+	return a.speed + (a.force.force*time);
 }
 
-void wait_all(Particle p[], int count, float time) {
-	int i, o;
-	Position tmp;
-	printf("\n%10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed");
-	for (i = 0; i < 76; i ++) {
-		printf("-");
-	}
-	printf("\n");
-	for (i = 0; i < count; i++) {
-		if (p[i].shown == 1){
-			for (o = i; o < count; o++) {
-				if (p[0].shown == 1) {
-					TestCase qlo;
-					qlo.a = p[i];
-					qlo.b = p[o];
-					qlo = is_collision(qlo);
-					if (qlo.is_collision == 1) {
-						if (qlo.time < time) {
+void wait_all(Particle p[], int count, float time, float display_time) {
+	int i,o, waittime = time;
+	TestCase watermelon;
+	for (i = 0; i < count; i ++) {
+		if (p[i].shown == 1) {
+			waittime = 1;
+			watermelon.a = p[i];
+			for (o = 0; o < count; o++) {
+				if (p[o].shown == 1) {
+					watermelon.b = p[o];
+					watermelon = is_collision(watermelon);
+					if (watermelon.is_collision == 1) {
+						printf("%f\n", watermelon.time);
+
+						if (watermelon.time < time) {
+							waittime -= watermelon.time;
+							p[i].pos = wait(p[i], watermelon.time);
+							p[o].shown = 0;
 							p[i].force = balance_force(p[i].force, p[o].force);
-							p[i].pos = wait(p[i], qlo.time);
-							print_force(p[i].force);
-							p[o] = new_particle(0,0,0,0);
-							p[o].shown = -1;
 						}
 					}
-				}		
+				}
 			}
-			tmp = wait(p[i], time);
-			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, tmp.x, tmp.y, p[i].force.force, p[i].force.angle, p[i].speed);
+			p[i].pos = wait(p[i], waittime);
+			//p[i].speed = get_speed(p[i], time);
+
 		}
 	}
+	tabulate_particles(p, count, display_time);
 }						
 
 int main(int argc, char * argv[]) {
@@ -329,9 +328,14 @@ int main(int argc, char * argv[]) {
 	p[0] = new_particle(0,0,4,45);
 	strcpy(p[0].name,"Test");
 	p[0].speed = 0;
+
+	Position lq = wait(p[0], 3);
+	print_position(lq);
+
 	p[1] = new_particle(25,0,4,315);
 	strcpy(p[1].name,"Sim");
 	p[1].speed = 0;
+
 	p[2] = new_particle(0, 30, 20, 90);
 	p[2].speed = 0;
 	strcpy(p[2].name, "Followup");
@@ -340,7 +344,7 @@ int main(int argc, char * argv[]) {
 	p[3].speed = 0;
 	int i;
 	for (i = 0; i < 90; i++) {
-		wait_all(p, 4, i*0.1);
+		wait_all(p, 4, 0.1, i*0.1);
 	}
 }
 
