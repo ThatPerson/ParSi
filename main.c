@@ -233,7 +233,8 @@ TestCase is_collision(TestCase q) {
 	// So, we have s values for each. u was given to us (q.a.speed), as was a (q.a.force.force) so we can go ahead
 	float at = ((-q.a.speed + sqrt((2*al*q.a.force.force)+(power(q.a.speed,2))))/q.a.force.force);
 	float bt = ((-q.b.speed + sqrt((2*bl*q.b.force.force)+(power(q.b.speed,2))))/q.b.force.force);
-
+	at = ceilf(at * 100) / 100;
+	bt = ceilf(bt * 100) / 100;
 	if (at == bt) {
 		q.time = at;
 		q.is_collision = 1;
@@ -297,7 +298,6 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 					watermelon.b = p[o];
 					watermelon = is_collision(watermelon);
 					if (watermelon.is_collision == 1) {
-						printf("%f\n", watermelon.time);
 
 						if (watermelon.time < (2*time)) {
 							waittime -= watermelon.time;
@@ -308,7 +308,6 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 					}
 				}
 			}
-			printf("%f\n", waittime);
 			p[i].pos = wait(p[i], waittime);
 			p[i].speed = get_speed(p[i], waittime);
 
