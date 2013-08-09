@@ -285,11 +285,12 @@ float get_speed(Particle a, float time) {
 }
 
 void wait_all(Particle p[], int count, float time, float display_time) {
-	int i,o, waittime = time;
+	int i,o;
+	float waittime = time;
 	TestCase watermelon;
 	for (i = 0; i < count; i ++) {
 		if (p[i].shown == 1) {
-			waittime = 1;
+			waittime = time;
 			watermelon.a = p[i];
 			for (o = 0; o < count; o++) {
 				if (p[o].shown == 1) {
@@ -298,7 +299,7 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 					if (watermelon.is_collision == 1) {
 						printf("%f\n", watermelon.time);
 
-						if (watermelon.time < time) {
+						if (watermelon.time < (2*time)) {
 							waittime -= watermelon.time;
 							p[i].pos = wait(p[i], watermelon.time);
 							p[o].shown = 0;
@@ -307,8 +308,9 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 					}
 				}
 			}
+			printf("%f\n", waittime);
 			p[i].pos = wait(p[i], waittime);
-			//p[i].speed = get_speed(p[i], time);
+			p[i].speed = get_speed(p[i], waittime);
 
 		}
 	}
@@ -317,10 +319,10 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 
 int main(int argc, char * argv[]) {
 	
-	/*Particle lo = new_particle(0,0,2,90);
+	Particle lo = new_particle(0,0,2,90);
 	lo.speed = 2;
-	lo.pos = wait(lo, 5);
-	printf("%f\n", lo.pos.x);*/
+	lo.pos = wait(lo, 0.05);
+	printf("%f\n", lo.pos.x);
 
 
 	Particle p[4];
