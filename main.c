@@ -56,6 +56,14 @@ typedef struct {
 	int is_collision;
 } TestCase;
 
+float power(float val, int power) {
+	float res = 1;
+	int i;
+	for (i = 0; i < power; i ++) {
+		res = res*val;
+	}
+	return res;
+}
 
 float to_radians(float degrees) {
 	// degrees * pi/180
@@ -69,6 +77,12 @@ float to_degrees(float radians) {
 }
 
 
+Force new_force(float force, float angle) {
+	Force f;
+	f.force = force;
+	f.angle = angle;
+	return f;
+}
 
 Resolved resolve(Force f) {
 	Resolved retur;
@@ -145,8 +159,12 @@ Position wait(Particle a, float time) {
 	float xinc, yinc;
 	Resolved x = resolve(a.force);
 	//s = 1/2at^2
-	xinc = ((x.x.force*time*time)/2);
-	yinc = ((x.y.force*time*time)/2);
+
+	//We need to resolve the speed of the particle into x and y to use in s=ut+1/2at^2. Because resolve can do this, we just make a new Force with the speed as the force
+	Resolved p = resolve(new_force(a.speed, a.force.angle));
+
+	xinc = (p.x.force*time) + ((x.x.force*time*time)/2);
+	yinc = (p.y.force*time) + ((x.y.force*time*time)/2);
 	Position l;
 	l.x = a.pos.x + xinc;
 	l.y = a.pos.y + yinc;
@@ -168,81 +186,65 @@ int poscmp(Position a, Position b) {
 	return -1;
 }
 
-TestCase is_collision(TestCase q) {
-	float xdist = absol(q.a.pos.x - q.b.pos.x);
-	float ydist = absol(q.a.pos.y - q.b.pos.y);
-	//printf("XDIST %f YDIST %f\n", xdist, ydist);
-	TestCase retur = q;
-	retur.is_collision = 0;
-	if (xdist > ydist) {
-		//printf("H");
-		Resolved ar, br;
-		ar = resolve(q.a.force);
-		br = resolve(q.b.force);
-		//printf("ar x %f ar y %f, br x %f br y %f\n", ar.x.force, ar.y.force, br.x.force, br.y.force); 
-		float dt = (xdist/(absol(ar.x.force - br.x.force))) * absol(ar.x.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
-		float l = 2 * dt;
-		float z = l / ar.x.force;
-		//printf("%f\n", ar.x.force);
-		float t = sqrt(z);
-		
-		Position ac = wait(q.a, t);
-		Position bc = wait(q.b, t);
-		//printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
-						//ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
-		ac.x = floorf(ac.x * 100+0.5)/100;
-		ac.y = floorf(ac.y * 100+0.5)/100;
-		bc.x = floorf(bc.x * 100+0.5)/100;
-		bc.y = floorf(bc.y * 100+0.5)/100;
-		if ((ac.x == bc.x) && (ac.y == bc.y)) {
-			retur.time = t;
-			retur.is_collision = 1;
-		}
-	} else {
-		//printf("Q");
-		Resolved ar, br;
-		ar = resolve(q.a.force);
-		br = resolve(q.b.force);
-		float dt = (ydist/(absol(ar.y.force - br.y.force))) * absol(br.y.force); //If the y force is negative it is heading towards it, so it would become a positive, else it would be a negative
-		
-		// s = 1/2at^2
-		// dt = s
-		// l = at^2
-		// z = t^2
-		
-		float l = 2 * dt;
-		float z = l / br.y.force;
-		float t = sqrt(z);
-		
-		Position ac = wait(q.a, t);
-		//printf("q.a.force.force %f q.a.force.angle %f q.a.pos.x %f q.a.pos.y %f", q.a.force.force, q.a.force.angle, q.a.pos.x, q.a.pos.y);
-		Position bc = wait(q.b, t);
-		
-		//printf("AR: \n\tX %f\n\tY %f\nBR: \n\tX %f\n\tY %f\nDT %f\nL %f\nZ %f\nT %f\nAC\n\tX %f\n\tY %f\nBC\n\tX %f\n\tY %f\n", 
-		//				ar.x.force,	ar.y.force,		  br.x.force,	  br.y.force, dt,    l,    z,    t,          ac.x,   ac.y,       bc.x,   bc.y);
-		
-		/*float ydistc = ac.x+bc.y;
-		float xdistc = ac.y+bc.x;
-		
-		ydistc = floorf(ydistc * 100 + 0.5) / 100;
-		xdistc = floorf(xdistc * 100 + 0.5) / 100;
-
-		printf("xdistc %f ydistc %f\n", xdistc, ydistc);
-		
-		if ((ydistc == ydist) && (xdistc == xdist)) {*/
-		
-		ac.x = floorf(ac.x * 100+0.5)/100;
-		ac.y = floorf(ac.y * 100+0.5)/100;
-		bc.x = floorf(bc.x * 100+0.5)/100;
-		bc.y = floorf(bc.y * 100+0.5)/100;
-		
-		if ((ac.x == bc.x) && (ac.y == bc.y)) {
-			retur.time = t;
-			retur.is_collision = 1;
-		}
-	}
-	return retur;
+Position posdiff(Position a, Position b) {
+	Position l;
+	l.x = absol(a.x)+absol(b.x);
+	l.y = absol(a.y)+absol(b.y);
+	return l;
 }
+
+TestCase is_collision(TestCase q) {
+	/*
+	 * This uses a graphing mechanism. Basically it works out the equation of the line of a particle, and 
+	 * uses this to work out the intercept. Then, using Pythag it works out the distance for each to reac
+	 * h said point, and then uses t = (-u + sqrt(2sa+u^2))/a to work out the time required. Then, it com
+	 * pares the two times, and if they are the same (well, 1/1000th margin for change) it will regard it 
+	 * as true
+	 */
+	// Firstly we do A
+	Resolved a = resolve(q.a.force);
+	float gradianta = a.y.force/a.x.force;
+	float ac = q.a.pos.y - (gradianta*q.a.pos.x); // y-px = c, use the position values as y and x
+	// hence, formula = y = gradiant * x + ac
+	// And now we do B
+	Resolved b = resolve(q.b.force);
+	float gradiantb = b.y.force/b.x.force;
+	float bc = q.b.pos.y - (gradiantb*q.b.pos.x);
+
+	// Now,   gradianta*x + ac = gradiantb*x + bc
+	// Hence, gradianta*x - gradiantb*x = bc - ac
+	//        x*(gradianta-gradiantb) = bc - ac
+	//        x = (bc - ac)/(gradianta-gradiantb)
+	float x = (bc - ac)/(gradianta-gradiantb);
+	float y = (gradianta * x) + ac; // Well, if y=gradianta*x+ac, why not just use it here?
+
+	// Now we find out the distances for each
+	float ax = absol(q.a.pos.x - x);
+	float ay = absol(q.a.pos.y - y);
+	float ac2 = (power(ax,2)) + (power(ay,2));
+	float al = sqrt(ac2);
+
+	// And for B
+	float bx = absol(q.b.pos.x - x);
+	float by = absol(q.b.pos.y - y);
+	float bc2 = power(bx,2) + power(by,2);
+	float bl = sqrt(bc2);
+
+	// So, we have s values for each. u was given to us (q.a.speed), as was a (q.a.force.force) so we can go ahead
+	float at = ((-q.a.speed + sqrt((2*al*q.a.force.force)+(power(q.a.speed,2))))/q.a.force.force);
+	float bt = ((-q.b.speed + sqrt((2*bl*q.b.force.force)+(power(q.b.speed,2))))/q.b.force.force);
+
+	if (at == bt) {
+		q.time = at;
+		q.is_collision = 1;
+	} else {
+		q.time = 0;
+		q.is_collision = 0;
+	}
+	return q;
+}
+
+
 
 Particle new_particle(float x, float y, float force, float angle) {
 	Particle t;
@@ -254,12 +256,6 @@ Particle new_particle(float x, float y, float force, float angle) {
 	return t;
 }
 
-Force new_force(float force, float angle) {
-	Force f;
-	f.force = force;
-	f.angle = angle;
-	return f;
-}
 
 Position new_position(float x, float y) {
 	Position p;
@@ -283,42 +279,53 @@ void tabulate_particles(Particle p[], int count, float time) {
 	printf("\n");
 }	
 
+float get_speed(Particle a, float time) {
+	return 1;
+}
+
 void wait_all(Particle p[], int count, float time) {
 	int i, o;
-	for (i = 0; i < count; i++) {
-		for (o = i; o < count; o++) {
-			if (p[0].shown == 1 && p[1].shown == 1) {
-				TestCase qlo;
-				qlo.a = p[i];
-				qlo.b = p[o];
-				qlo = is_collision(qlo);
-				if (qlo.is_collision == 1) {
-					if (qlo.time < time) {
-						p[i].force = balance_force(p[i].force, p[o].force);
-						p[o] = new_particle(0,0,0,0);
-						p[o].shown = -1;
-					}
-				}
-			}		
-		}
-	}
-	printf("%10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed");
+	Position tmp;
+	printf("\n%10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed");
 	for (i = 0; i < 76; i ++) {
 		printf("-");
 	}
 	printf("\n");
-	Position tmp;
 	for (i = 0; i < count; i++) {
-		if (p[i].shown == 1) {
+		if (p[i].shown == 1){
+			for (o = i; o < count; o++) {
+				if (p[0].shown == 1) {
+					TestCase qlo;
+					qlo.a = p[i];
+					qlo.b = p[o];
+					qlo = is_collision(qlo);
+					if (qlo.is_collision == 1) {
+						if (qlo.time < time) {
+							p[i].force = balance_force(p[i].force, p[o].force);
+							p[i].pos = wait(p[i], qlo.time);
+							print_force(p[i].force);
+							p[o] = new_particle(0,0,0,0);
+							p[o].shown = -1;
+						}
+					}
+				}		
+			}
 			tmp = wait(p[i], time);
 			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, tmp.x, tmp.y, p[i].force.force, p[i].force.angle, p[i].speed);
 		}
 	}
-
 }						
 
-int main(int argc, char * argv) {
+int main(int argc, char * argv[]) {
+	
+	/*Particle lo = new_particle(0,0,2,90);
+	lo.speed = 2;
+	lo.pos = wait(lo, 5);
+	printf("%f\n", lo.pos.x);*/
+
+
 	Particle p[4];
+
 	p[0] = new_particle(0,0,4,45);
 	strcpy(p[0].name,"Test");
 	p[0].speed = 0;
