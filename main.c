@@ -336,28 +336,16 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time, 0);
+	tabulate_particles(p, count, display_time, 1);
 }						
 
 int main(int argc, char * argv[]) {
-	
-	Resolved q = resolve(new_force(4, 30));
-	print_force(anti_resolve(q));
-	
-	Particle lo = new_particle(0,0,2,90);
-	lo.speed.force = 2;
-	lo.pos = wait(lo, 0.05);
-	printf("%f\n", lo.pos.x);
-
-
 	Particle p[4];
 
 	p[0] = new_particle(0,0,4,45);
 	strcpy(p[0].name,"Test");
 	p[0].speed.force = 0;
 
-	Position lq = wait(p[0], 3);
-	print_position(lq);
 
 	p[1] = new_particle(25,0,4,315);
 	strcpy(p[1].name,"Sim");
