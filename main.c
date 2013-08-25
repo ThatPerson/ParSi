@@ -276,6 +276,8 @@ void tabulate_particles(Particle p[], int count, float time) {
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
 			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed.force, p[i].speed.angle);
+		} else {
+			printf("%10f %10s %10s %10s %10s %10s %10s %10s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
 	}
 	printf("\n");
@@ -305,12 +307,15 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 	TestCase watermelon;
 	watermelon.is_collision = 0;
 	for (i = 0; i < count; i ++) {
+		watermelon.is_collision = 0;
 		if (p[i].shown == 1) {
 			waittime = time;
 			watermelon.a = p[i];
 			for (o = i+1; o < count; o++) {
 				if (p[o].shown == 1) {
 					watermelon.b = p[o];
+					watermelon.time = 0;
+					watermelon.is_collision = 0;
 					watermelon = is_collision(watermelon, time, 10);
 					if (watermelon.is_collision == 1) {
 
@@ -326,7 +331,6 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 			}
 			p[i].pos = wait(p[i], waittime);
 			p[i].speed = get_speed(p[i], waittime);
-			watermelon.is_collision = 0;
 		}
 	}
 	tabulate_particles(p, count, display_time);
@@ -358,7 +362,7 @@ int main(int argc, char * argv[]) {
 
 	p[2] = new_particle(0,25, 9.8, 180);
 	strcpy(p[2].name, "Cannon");
-	p[2].speed.force = 4;
+	p[2].speed.force = 8;
 	p[2].speed.angle = 45;
 	
 /*	p[2] = new_particle(0, 30, 20, 90);
