@@ -336,7 +336,7 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time, 1);
+	tabulate_particles(p, count, display_time, 0);
 }						
 
 int main(int argc, char * argv[]) {
