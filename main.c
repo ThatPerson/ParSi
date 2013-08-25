@@ -266,18 +266,21 @@ Position new_position(float x, float y) {
 	return p;
 }
 
-void tabulate_particles(Particle p[], int count, float time) {
-	printf("%10s %10s %10s %10s %10s %10s %10s %10s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
+void tabulate_particles(Particle p[], int count, float time, int csv) {
+		printf((csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
 	int i;
-	for (i = 0; i < 87; i++) {
-		printf("-");
+	if (csv == 0) {
+		for (i = 0; i < 87; i++) {
+			printf("-");
+		}
+		printf("\n");
 	}
-	printf("\n");
+	
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			printf("%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed.force, p[i].speed.angle);
+			printf((csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed.force, p[i].speed.angle);
 		} else {
-			printf("%10f %10s %10s %10s %10s %10s %10s %10s\n", time, p[i].name, "-", "-", "-","-","-","-");
+			printf((csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
 	}
 	printf("\n");
@@ -333,7 +336,7 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time);
+	tabulate_particles(p, count, display_time, 0);
 }						
 
 int main(int argc, char * argv[]) {
