@@ -25,7 +25,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-
+#define CSV_ON 0
 typedef struct {
 	float x;
 	float y;
@@ -266,21 +266,23 @@ Position new_position(float x, float y) {
 	return p;
 }
 
-void tabulate_particles(Particle p[], int count, float time, int csv) {
-		printf((csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
+void tabulate_particles(Particle p[], int count, float time, int csv, int headers) {
 	int i;
-	if (csv == 0) {
-		for (i = 0; i < 87; i++) {
-			printf("-");
+
+	if (headers == 1) {	
+		printf((csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
+		if (csv == 0) {
+			for (i = 0; i < 87; i++) {
+				printf("-");
+			}
+			printf("\n");
 		}
-		printf("\n");
 	}
-	
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
 			printf((csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed.force, p[i].speed.angle);
 		} else {
-			printf((csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
+			printf((csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
 	}
 	printf("\n");
@@ -304,7 +306,7 @@ Force get_speed(Particle a, float time) {
 	return anti_resolve(l);
 }
 
-void wait_all(Particle p[], int count, float time, float display_time) {
+void wait_all(Particle p[], int count, float time, float display_time, int show_headers) {
 	int i,o;
 	float waittime = time;
 	TestCase watermelon;
@@ -336,7 +338,7 @@ void wait_all(Particle p[], int count, float time, float display_time) {
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time, 0);
+	tabulate_particles(p, count, display_time, CSV_ON, show_headers);
 }						
 
 int main(int argc, char * argv[]) {
@@ -355,16 +357,10 @@ int main(int argc, char * argv[]) {
 	strcpy(p[2].name, "Cannon");
 	p[2].speed.force = 8;
 	p[2].speed.angle = 45;
-	
-/*	p[2] = new_particle(0, 30, 20, 90);
-	p[2].speed.force = 0;
-	strcpy(p[2].name, "Followup");
-	p[3] = new_particle(0, 40, 2, 90);
-	strcpy(p[3].name, "Miss");
-	p[3].speed.force = 0;*/
+
 	int i;
-	for (i = 0; i < 30; i++) {
-		wait_all(p, 3, 0.1, i*0.1);
+	for (i = 0; i < 60; i++) {
+		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0);
 	}
 }
 
