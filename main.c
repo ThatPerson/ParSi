@@ -349,9 +349,13 @@ int main(int argc, char * argv[]) {
 	p[0].speed.force = 0;
 
 
-	p[1] = new_particle(25,0,4,315);
+	//p[1] = new_particle(25,0,4,315);
 	strcpy(p[1].name,"Sim");
+	//p[1].speed.force = 0;
+
+	p[1] = new_particle(11.879393, (15.270392-16.84), (15.270392)/2, 0);
 	p[1].speed.force = 0;
+	strcpy(p[1].name,"Sim");
 
 	p[2] = new_particle(0,25, 9.8, 180);
 	strcpy(p[2].name, "Cannon");
