@@ -25,7 +25,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#define CSV_ON 0
+#define CSV_ON 0 
 typedef struct {
 	float x;
 	float y;
@@ -266,7 +266,7 @@ Position new_position(float x, float y) {
 	return p;
 }
 
-void tabulate_particles(Particle p[], int count, float time, int csv, int headers) {
+void tabulate_particles(Particle p[], int count, float time, int csv, int headers, int radians) {
 	int i;
 
 	if (headers == 1) {	
@@ -280,7 +280,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			printf((csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, p[i].force.angle, p[i].speed.force, p[i].speed.angle);
+			printf((csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, (radians == 1)?to_radians(p[i].force.angle):p[i].force.angle, p[i].speed.force, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle);
 		} else {
 			printf((csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
@@ -306,7 +306,7 @@ Force get_speed(Particle a, float time) {
 	return anti_resolve(l);
 }
 
-void wait_all(Particle p[], int count, float time, float display_time, int show_headers) {
+void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians) {
 	int i,o;
 	float waittime = time;
 	TestCase watermelon;
@@ -338,8 +338,8 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time, CSV_ON, show_headers);
-}						
+	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians);
+}
 
 int main(int argc, char * argv[]) {
 	Particle p[4];
@@ -364,7 +364,7 @@ int main(int argc, char * argv[]) {
 
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0);
+		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0, 0);
 	}
 }
 
