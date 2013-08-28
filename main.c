@@ -25,7 +25,8 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#define CSV_ON 0 
+int CSV_ON = 0; 
+int RAD_ON = 0;
 typedef struct {
 	float x;
 	float y;
@@ -342,29 +343,30 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 }
 
 int main(int argc, char * argv[]) {
-	Particle p[4];
+	if (argc == 3) {
+	  	CSV_ON = atoi(argv[1]);
+		RAD_ON = atoi(argv[2]);
+	}
+  	Particle p[4];
 
 	p[0] = new_particle(0,0,4,45);
 	strcpy(p[0].name,"Test");
 	p[0].speed.force = 0;
 
 
-	//p[1] = new_particle(25,0,4,315);
-	strcpy(p[1].name,"Sim");
-	//p[1].speed.force = 0;
-
-	p[1] = new_particle(11.879393, (15.270392-16.84), (15.270392)/2, 0);
-	p[1].speed.force = 0;
-	strcpy(p[1].name,"Sim");
+//	p[1] = new_particle(11.879393, (15.270392-16.84), (15.270392)/2, 0);
+	p[1] = new_particle(11.879393, 0, 9.8, 180);
+	p[1].speed.force = 17.34705;
+	strcpy(p[1].name,"Simulation");
 
 	p[2] = new_particle(0,25, 9.8, 180);
-	strcpy(p[2].name, "Cannon");
+	strcpy(p[2].name, "Cannonball");
 	p[2].speed.force = 8;
 	p[2].speed.angle = 45;
 
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0, 0);
+		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
 	}
 }
 
