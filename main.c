@@ -350,11 +350,8 @@ Particle string_to_particle(char string[500]) {
 	int buffer_pos = 0;
 	int buffer_inc = 0;
 	p.shown = 1;
-	printf("%d\n", (int)strlen(string));
 	for (i = 0; i < strlen(string); i++) {
 	  	if ((string[i] == 44) || (i == (((int)strlen(string))-1))) {
-			printf("%s, %f\n", buffer, atof(buffer));
-			//printf("1 %d %d", buffer_inc, buffer_pos);
 		  	switch (buffer_inc) {
 			  	case 0: strcpy(p.name, buffer); break;
 				case 1: p.force.force = atof(buffer); break;
@@ -369,7 +366,6 @@ Particle string_to_particle(char string[500]) {
 			  	buffer[l] = 0;
 			}
 			buffer_pos = 0;
-			//printf("2 %d %d", buffer_inc, buffer_pos);
 		} else {
 		  	buffer[buffer_pos] = string[i];
 			buffer_pos++;
