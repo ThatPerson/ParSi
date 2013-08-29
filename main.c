@@ -405,7 +405,7 @@ int main(int argc, char * argv[]) {
 	q = p;
 	p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
 	p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
-	p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25");
+	p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,");
 	int i;
 	for (i = 0; i < 60; i++) {
 		wait_all(q, 3, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
