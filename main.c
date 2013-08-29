@@ -342,31 +342,73 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians);
 }
 
+Particle string_to_particle(char string[500]) {
+	Particle p;
+  	char buffer[500];
+	int i, l;
+	int buffer_pos = 0;
+	int buffer_inc = 0;
+	p.shown = 1;
+	printf("%d\n", (int)strlen(string));
+	for (i = 0; i < strlen(string); i++) {
+	  	if ((string[i] == 44) || (i == (((int)strlen(string))-1))) {
+			printf("%s, %f\n", buffer, atof(buffer));
+			//printf("1 %d %d", buffer_inc, buffer_pos);
+		  	switch (buffer_inc) {
+			  	case 0: strcpy(p.name, buffer); break;
+				case 1: p.force.force = atof(buffer); break;
+				case 2: p.force.angle = atof(buffer); break;
+				case 3: p.speed.force = atof(buffer); break;
+				case 4: p.speed.angle = atof(buffer); break;
+				case 5: p.pos.x = atof(buffer); break;
+				case 6: p.pos.y = atof(buffer); break;
+			}
+		  	buffer_inc++;
+			for (l = 0; l < 500; l++) {
+			  	buffer[l] = 0;
+			}
+			buffer_pos = 0;
+			//printf("2 %d %d", buffer_inc, buffer_pos);
+		} else {
+		  	buffer[buffer_pos] = string[i];
+			buffer_pos++;
+		}
+	}
+	return p;
+}
+
+int count(char str[500][500]) {
+  	int i;
+	for (i = 0; i < 500; i++) {
+	  	if (strcmp(str[i], "")) {
+		  	return i;
+		}
+	}
+	return i;
+}
+
+void read_lines(Particle * p, char strings[500][500]) {
+	int i;
+	for (i = 0; i < count(strings); i++) {
+	  	p[i] = string_to_particle(strings[i]);
+	}
+	return;
+}
+
 int main(int argc, char * argv[]) {
 	if (argc == 3) {
 	  	CSV_ON = atoi(argv[1]);
 		RAD_ON = atoi(argv[2]);
 	}
-  	Particle p[4];
-
-	p[0] = new_particle(0,0,4,45);
-	strcpy(p[0].name,"Test");
-	p[0].speed.force = 0;
-
-
-//	p[1] = new_particle(11.879393, (15.270392-16.84), (15.270392)/2, 0);
-	p[1] = new_particle(11.879393, 0, 9.8, 180);
-	p[1].speed.force = 17.34705;
-	strcpy(p[1].name,"Simulation");
-
-	p[2] = new_particle(0,25, 9.8, 180);
-	strcpy(p[2].name, "Cannonball");
-	p[2].speed.force = 8;
-	p[2].speed.angle = 45;
-
+  	Particle p[500];
+	Particle * q;
+	q = p;
+	p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
+	p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
+	p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25");
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(p, 3, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
+		wait_all(q, 3, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
 	}
 }
 
