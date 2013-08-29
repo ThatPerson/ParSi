@@ -27,6 +27,7 @@
 #include <stdlib.h>
 int CSV_ON = 0; 
 int RAD_ON = 0;
+int INTERACTIVE_ON = 0;
 typedef struct {
 	float x;
 	float y;
@@ -395,20 +396,52 @@ void read_lines(Particle * p, char strings[500][500]) {
 	return;
 }
 
+char * substring(char * string, int start) {
+  	int i;
+	char * resp;
+
+	for (i = start; i < strlen(string); i++) {
+		resp[i-start] = string[i];
+	}
+	return resp;
+}	
+
 int main(int argc, char * argv[]) {
-	if (argc == 3) {
-	  	CSV_ON = atoi(argv[1]);
-		RAD_ON = atoi(argv[2]);
+	int pq;
+	for (pq = 1; pq < argc; pq++) {
+	  	if (strcmp(argv[pq], "-c") == 0) {
+			CSV_ON = 1;
+		} else if (strcmp(argv[pq], "-r") == 0) {
+			RAD_ON = 1;
+		} else if (strcmp(argv[pq], "-i") == 0) {
+		  	INTERACTIVE_ON = 1;
+		}
 	}
   	Particle p[500];
 	Particle * q;
 	q = p;
-	p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
-	p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
-	p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,");
+	int run = 0, curr = 0;
+	char temp[500];
+	if (INTERACTIVE_ON == 1) {
+	  	while (run == 0) {
+	  		scanf("%499s", temp);
+			if ((temp[0] == 'r') && (temp[1] == 'u') && (temp[2] == 'n')) {
+			  	
+			  	run = 1;
+			} else {
+			 	p[curr] = string_to_particle(temp);
+				curr++;
+			}
+		}
+	} else {
+		p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
+		p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
+		p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,");
+		curr = 3;
+	}
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(q, 3, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
+		wait_all(q, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
 	}
 }
 
