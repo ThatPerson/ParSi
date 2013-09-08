@@ -268,26 +268,26 @@ Position new_position(float x, float y) {
 	return p;
 }
 
-void tabulate_particles(Particle p[], int count, float time, int csv, int headers, int radians) {
+void tabulate_particles(Particle p[], int count, float time, int csv, int headers, int radians, FILE * stream) {
 	int i;
 
 	if (headers == 1) {	
-		printf((csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Angle", "Speed", "SAngle");
 		if (csv == 0) {
 			for (i = 0; i < 87; i++) {
-				printf("-");
+				fprintf(stream, "-");
 			}
-			printf("\n");
+			fprintf(stream, "\n");
 		}
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			printf((csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, (radians == 1)?to_radians(p[i].force.angle):p[i].force.angle, p[i].speed.force, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle);
+			fprintf(stream,(csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, (radians == 1)?to_radians(p[i].force.angle):p[i].force.angle, p[i].speed.force, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle);
 		} else {
-			printf((csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
+			fprintf(stream,(csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
 	}
-	printf("\n");
+	fprintf(stream,"\n");
 }	
 
 Force get_speed(Particle a, float time) {
@@ -308,7 +308,7 @@ Force get_speed(Particle a, float time) {
 	return anti_resolve(l);
 }
 
-void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians) {
+void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
 	int i,o;
 	float waittime = time;
 	TestCase watermelon;
@@ -340,7 +340,7 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			p[i].speed = get_speed(p[i], waittime);
 		}
 	}
-	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians);
+	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
 }
 
 Particle string_to_particle(char string[500]) {
@@ -411,6 +411,11 @@ int main(int argc, char * argv[]) {
 			RAD_ON = 1;
 		} else if (strcmp(argv[pq], "-i") == 0) {
 		  	INTERACTIVE_ON = 1;
+		} else if (strcmp(argv[pq], "-h") == 0) {
+		  	printf("-c Enter CSV output mode");
+			printf("\n-r Use Radians as opposed to degrees");
+			printf("\n-i enter interactive mode.\n");
+			return 1;
 		}
 	}
   	Particle p[500];
@@ -437,7 +442,7 @@ int main(int argc, char * argv[]) {
 	}
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(q, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON);
+		wait_all(q, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
 	}
 }
 
