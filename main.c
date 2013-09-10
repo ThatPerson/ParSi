@@ -330,7 +330,7 @@ Force get_speed(Particle a, float time) {
 	l.y.angle = 0;
 	return anti_resolve(l);
 }
-
+/*
 void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
 	Particle * lo;
 	lo = (Particle *) malloc(count * sizeof(p[0]));
@@ -375,6 +375,70 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 //	}
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
 }
+*/
+/*
+   * The above code is only included as it is an example of using is_collide. Unfortunately, is_collide does not work with gravity (as if it did, it would do loads of calculations.
+*/
+
+
+void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
+	Force * temp;
+	temp = (Force *) malloc (count * sizeof(Force *));
+	int i, o;
+	float waittime = time;
+	TestCase particle_collision;
+	for (i = 0; i < count; i ++ ){
+		temp[i] = p[i].force;
+	}
+	for (i = 0; i < count; i ++ ){ 
+		if (p[i].shown == 1) {
+			waittime = time;
+	  		particle_collision.is_collision = 0;
+			for (o = 0; o < count; o ++ ){
+				if (o != i && p[o].shown == 1) {
+					p[i].force = balance_force(p[i].force, grav_accel(p[i], p[o]));
+				}
+			}
+			/*
+				* Right. We have the balanced forces in the particle force. The original is in temp. 
+				* Unfortunately, it is INCREDIBLY computationally taxing to do is_collide with gravity.
+				* For this reason, and ONLY this reason, we do not use it in this. Instead we are very 
+				* careful, and instead we ASSUME that the person is running this relatively often. Ie,
+				* if you run this for 6 seconds with 0.01 second intervals, it will be pretty accurate.
+				* of course, if very high speeds are involved, it may miss (ie just checks that the x 
+				* and y value differences are less than the time update (time) times 10. This should 
+				* work for most, however if you are doing very important stuff, you may want to find
+				* another way.
+			*/
+			p[i].pos = wait(p[i], waittime);
+			p[i].speed = get_speed(p[i], waittime);
+			p[i].force = temp[i];
+		}
+	}
+	for (i = 0; i < count; i ++) {
+		if (p[i].shown == 1) {
+  			  for (o = i+1; o < count; o++) {
+				if (p[o].shown == 1) {		  
+		  			float xdiff = absol(p[i].pos.x - p[o].pos.x);
+					float ydiff = absol(p[i].pos.y - p[o].pos.y);
+					float maj = xdiff + ydiff;
+					if (maj < (time)) {
+						//Collision (more or less
+						p[o].shown = 0;
+						p[i].force = balance_force(p[i].force, p[o].force);
+						p[i].mass += p[o].mass;
+						p[i].speed = balance_force(p[i].speed, p[o].speed);
+					}
+				}
+			}
+		}	
+	}
+
+	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
+	//Make it do collision detection down here.
+	return;
+		
+}
 
 Particle string_to_particle(char string[500]) {
 	Particle p;
@@ -393,6 +457,7 @@ Particle string_to_particle(char string[500]) {
 				case 4: p.speed.angle = atof(buffer); break;
 				case 5: p.pos.x = atof(buffer); break;
 				case 6: p.pos.y = atof(buffer); break;
+				case 7: p.mass = atof(buffer); break;
 			}
 		  	buffer_inc++;
 			for (l = 0; l < 500; l++) {
@@ -468,9 +533,9 @@ int main(int argc, char * argv[]) {
 			}
 		}
 	} else {
-		p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
-		p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
-		p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,");
+		p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
+		p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
+		p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
 		curr = 3;
 	}
 	int i;
