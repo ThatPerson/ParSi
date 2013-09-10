@@ -43,6 +43,7 @@ typedef struct {
 	Force speed;
 	Force force;
 	Position pos;
+	int mass;
 	int shown;
 } Particle;
 
@@ -144,7 +145,29 @@ Force anti_resolve(Resolved f) {
 	return p;
 }
 
-
+Force grav_accel(Particle a, Particle b) {
+	float xdiff = absol(a.pos.x - b.pos.x);
+	float ydiff = absol(a.pos.y - b.pos.y);
+	float r = (xdiff * xdiff) + (ydiff * ydiff);
+	//Simple bit of pythag to get the difference
+	//For this next bit, we use the fact that F = ma
+	// and a = MG/r (We did not take the sqrt of the pythag
+	// In this, we are solving for the affect on a. So, M is equal to b.mass. G is the gravitational constant
+	float g = 6.67 * pow(10,-11);
+	// So.
+	float q = b.mass * g;
+	q = q/r;
+	// F = m * a
+	float force = a.mass * q;
+	Resolved w;
+	w.x.force = xdiff;
+	w.x.angle = 90;
+	w.y.force = ydiff;
+	w.y.angle = 0;
+	Force ret = anti_resolve(w);
+	ret.force = force;
+	return ret;
+}
 
 Force balance_force(Force a, Force b) {
 
@@ -309,18 +332,25 @@ Force get_speed(Particle a, float time) {
 }
 
 void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
+	Particle * lo;
+	lo = (Particle *) malloc(count * sizeof(p[0]));
 	int i,o;
 	float waittime = time;
 	TestCase watermelon;
 	watermelon.is_collision = 0;
 	for (i = 0; i < count; i ++) {
+		lo[i] = p[i];
 		watermelon.is_collision = 0;
+		int q;
+	//	for (q = 0; q < count; q++) {
+	//		lo[i].force = balance_force(lo[i].force, grav_accel(lo[i], lo[o]));
+	//	}
 		if (p[i].shown == 1) {
 			waittime = time;
-			watermelon.a = p[i];
+			watermelon.a = lo[i];
 			for (o = i+1; o < count; o++) {
 				if (p[o].shown == 1) {
-					watermelon.b = p[o];
+					watermelon.b = lo[o];
 					watermelon.time = 0;
 					watermelon.is_collision = 0;
 					watermelon = is_collision(watermelon, time, 10);
@@ -328,18 +358,21 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 
 						if (watermelon.time < (2*time)) {
 							waittime -= watermelon.time;
-							p[i].pos = wait(p[i], watermelon.time);
+							p[i].pos = wait(lo[i], watermelon.time);
 							p[o].shown = 0;
 							p[i].force = balance_force(p[i].force, p[o].force);
-							p[i].speed = balance_force(p[i].speed, p[o].speed);
+							p[i].speed = balance_force(lo[i].speed, lo[o].speed);
 						}
 					}
 				}
 			}
-			p[i].pos = wait(p[i], waittime);
-			p[i].speed = get_speed(p[i], waittime);
+			p[i].pos = wait(lo[i], waittime);
+			p[i].speed = get_speed(lo[i], waittime);
 		}
 	}
+//	for (i = 0; i < count; i ++) {
+//		lo[i] = p[i];
+//	}
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
 }
 
@@ -442,7 +475,7 @@ int main(int argc, char * argv[]) {
 	}
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(q, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
+		wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
 	}
 }
 
