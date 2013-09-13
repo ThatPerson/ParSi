@@ -165,7 +165,7 @@ Force grav_accel(Particle a, Particle b) {
 	float top = 6.67 * a.mass * b.mass;
 	top = top * pow(10, -11);
 	float ma = top/pow(r,2);
-	float force = ma / a.mass;
+	float force = ma;
 	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
 	w.x.force = xdiff;
@@ -174,7 +174,7 @@ Force grav_accel(Particle a, Particle b) {
 	w.y.angle = 0;
 	Force ret = anti_resolve(w);
 	
-	if (ret.angle <= 90) {
+	/*if (ret.angle <= 90) {
 		ret.angle += 180;
 	} else if (ret.angle <= 180) {
 		ret.angle += 270;
@@ -182,7 +182,7 @@ Force grav_accel(Particle a, Particle b) {
 		ret.angle -= 180;
 	} else {
 		ret.angle -= 180;
-	}
+	}*/
 
 	ret.force = force;
 	return ret;
@@ -497,8 +497,8 @@ int main(int argc, char * argv[]) {
 		//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
 		//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
 		//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
-		p[0] = string_to_particle("Large,0,0,0,0,0,0,100000000000000000000000000000000000");
-		p[1] = string_to_particle("Small,0,0,0,0,5,5,10000000000000000000000000000000");
+		p[0] = string_to_particle("Large,0,0,0,0,0,0,1000000000000000000000");
+		p[1] = string_to_particle("Small,0,0,0,0,50,50,10000000000000");
 	  	curr = 2;
 	}
 	int i;
