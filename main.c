@@ -148,6 +148,7 @@ Force anti_resolve(Resolved f) {
 Force grav_accel(Particle a, Particle b) {
 	float xdiff = b.pos.x - a.pos.x;
 	float ydiff = b.pos.y - a.pos.y;
+
 	float r = (xdiff * xdiff) + (ydiff * ydiff);
 	//Simple bit of pythag to get the difference
 	//For this next bit, we use the fact that F = ma
@@ -172,6 +173,17 @@ Force grav_accel(Particle a, Particle b) {
 	w.y.force = ydiff;
 	w.y.angle = 0;
 	Force ret = anti_resolve(w);
+	
+	if (ret.angle <= 90) {
+		ret.angle += 180;
+	} else if (ret.angle <= 180) {
+		ret.angle += 270;
+	} else if (ret.angle <= 270) {
+		ret.angle -= 180;
+	} else {
+		ret.angle -= 180;
+	}
+
 	ret.force = force;
 	return ret;
 }
@@ -337,56 +349,6 @@ Force get_speed(Particle a, float time) {
 	l.y.angle = 0;
 	return anti_resolve(l);
 }
-/*
-void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
-	Particle * lo;
-	lo = (Particle *) malloc(count * sizeof(p[0]));
-	int i,o;
-	float waittime = time;
-	TestCase watermelon;
-	watermelon.is_collision = 0;
-	for (i = 0; i < count; i ++) {
-		lo[i] = p[i];
-		watermelon.is_collision = 0;
-		int q;
-	//	for (q = 0; q < count; q++) {
-	//		lo[i].force = balance_force(lo[i].force, grav_accel(lo[i], lo[o]));
-	//	}
-		if (p[i].shown == 1) {
-			waittime = time;
-			watermelon.a = lo[i];
-			for (o = i+1; o < count; o++) {
-				if (p[o].shown == 1) {
-					watermelon.b = lo[o];
-					watermelon.time = 0;
-					watermelon.is_collision = 0;
-					watermelon = is_collision(watermelon, time, 10);
-					if (watermelon.is_collision == 1) {
-
-						if (watermelon.time < (2*time)) {
-							waittime -= watermelon.time;
-							p[i].pos = wait(lo[i], watermelon.time);
-							p[o].shown = 0;
-							p[i].force = balance_force(p[i].force, p[o].force);
-							p[i].speed = balance_force(lo[i].speed, lo[o].speed);
-						}
-					}
-				}
-			}
-			p[i].pos = wait(lo[i], waittime);
-			p[i].speed = get_speed(lo[i], waittime);
-		}
-	}
-//	for (i = 0; i < count; i ++) {
-//		lo[i] = p[i];
-//	}
-	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
-}
-*/
-/*
-   * The above code is only included as it is an example of using is_collide. Unfortunately, is_collide does not work with gravity (as if it did, it would do loads of calculations.
-*/
-
 
 void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
 	Force * temp;
@@ -536,7 +498,7 @@ int main(int argc, char * argv[]) {
 		//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
 		//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
 		p[0] = string_to_particle("Large,0,0,0,0,0,0,100000000000000000000000000000000000");
-		p[1] = string_to_particle("Small,0,0,0,0,5,5,1000000");
+		p[1] = string_to_particle("Small,0,0,0,0,5,5,10000000000000000000000000000000");
 	  	curr = 2;
 	}
 	int i;
