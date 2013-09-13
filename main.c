@@ -146,19 +146,26 @@ Force anti_resolve(Resolved f) {
 }
 
 Force grav_accel(Particle a, Particle b) {
-	float xdiff = absol(a.pos.x - b.pos.x);
-	float ydiff = absol(a.pos.y - b.pos.y);
+	float xdiff = b.pos.x - a.pos.x;
+	float ydiff = b.pos.y - a.pos.y;
 	float r = (xdiff * xdiff) + (ydiff * ydiff);
 	//Simple bit of pythag to get the difference
 	//For this next bit, we use the fact that F = ma
 	// and a = MG/r (We did not take the sqrt of the pythag
 	// In this, we are solving for the affect on a. So, M is equal to b.mass. G is the gravitational constant
-	float g = 6.67 * pow(10,-11);
-	// So.
-	float q = b.mass * g;
+	
+	//Oh Ben you idiot, this entire section is wrong! That will just end up wrong
+	// Right, no time now to fix it, it is on my TODO list.
+	/*float q = g/b.mass;
 	q = q/r;
 	// F = m * a
 	float force = a.mass * q;
+	*/
+	float top = 6.67 * a.mass * b.mass;
+	top = top * pow(10, -11);
+	float ma = top/pow(r,2);
+	float force = ma / a.mass;
+	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
 	w.x.force = xdiff;
 	w.x.angle = 90;
@@ -388,17 +395,26 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	float waittime = time;
 	TestCase particle_collision;
 	for (i = 0; i < count; i ++ ){
-		temp[i] = p[i].force;
+		if (p[i].shown == 1) {
+			temp[i] = p[i].force;
+			for (o = 0; o < count; o++) {
+			  	if (o != i && p[o].shown == 1) {
+					p[i].force = balance_force(p[i].force, grav_accel(p[i], p[o]));
+				}
+			}
+		}
+
 	}
 	for (i = 0; i < count; i ++ ){ 
 		if (p[i].shown == 1) {
 			waittime = time;
 	  		particle_collision.is_collision = 0;
-			for (o = 0; o < count; o ++ ){
-				if (o != i && p[o].shown == 1) {
+//			for (o = 0; o < count; o ++ ){
+		/*		if (o != i && p[o].shown == 1) {
 					p[i].force = balance_force(p[i].force, grav_accel(p[i], p[o]));
+				// Eeek. This is using the updated values for the positions in the particles. Try doing this in the first loop with setting temp[i] to prevent this.
 				}
-			}
+			}*/
 			/*
 				* Right. We have the balanced forces in the particle force. The original is in temp. 
 				* Unfortunately, it is INCREDIBLY computationally taxing to do is_collide with gravity.
@@ -472,23 +488,6 @@ Particle string_to_particle(char string[500]) {
 	return p;
 }
 
-int count(char str[500][500]) {
-  	int i;
-	for (i = 0; i < 500; i++) {
-	  	if (strcmp(str[i], "")) {
-		  	return i;
-		}
-	}
-	return i;
-}
-
-void read_lines(Particle * p, char strings[500][500]) {
-	int i;
-	for (i = 0; i < count(strings); i++) {
-	  	p[i] = string_to_particle(strings[i]);
-	}
-	return;
-}
 
 char * substring(char * string, int start) {
   	int i;
@@ -533,10 +532,12 @@ int main(int argc, char * argv[]) {
 			}
 		}
 	} else {
-		p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
-		p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
-		p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
-		curr = 3;
+		//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
+		//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
+		//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
+		p[0] = string_to_particle("Large,0,0,0,0,0,0,100000000000000000000000000000000000");
+		p[1] = string_to_particle("Small,0,0,0,0,5,5,1000000");
+	  	curr = 2;
 	}
 	int i;
 	for (i = 0; i < 60; i++) {
