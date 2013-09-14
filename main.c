@@ -43,6 +43,7 @@ typedef struct {
 	Force speed;
 	Force force;
 	Position pos;
+	int mass;
 	int shown;
 } Particle;
 
@@ -144,7 +145,48 @@ Force anti_resolve(Resolved f) {
 	return p;
 }
 
+Force grav_accel(Particle a, Particle b) {
+	float xdiff = b.pos.x - a.pos.x;
+	float ydiff = b.pos.y - a.pos.y;
 
+	float r = (xdiff * xdiff) + (ydiff * ydiff);
+	//Simple bit of pythag to get the difference
+	//For this next bit, we use the fact that F = ma
+	// and a = MG/r (We did not take the sqrt of the pythag
+	// In this, we are solving for the affect on a. So, M is equal to b.mass. G is the gravitational constant
+	
+	//Oh Ben you idiot, this entire section is wrong! That will just end up wrong
+	// Right, no time now to fix it, it is on my TODO list.
+	/*float q = g/b.mass;
+	q = q/r;
+	// F = m * a
+	float force = a.mass * q;
+	*/
+	float top = 6.67 * a.mass * b.mass;
+	top = top * pow(10, -11);
+	float ma = top/pow(r,2);
+	float force = ma;
+	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
+	Resolved w;
+	w.x.force = xdiff;
+	w.x.angle = 90;
+	w.y.force = ydiff;
+	w.y.angle = 0;
+	Force ret = anti_resolve(w);
+	
+	/*if (ret.angle <= 90) {
+		ret.angle += 180;
+	} else if (ret.angle <= 180) {
+		ret.angle += 270;
+	} else if (ret.angle <= 270) {
+		ret.angle -= 180;
+	} else {
+		ret.angle -= 180;
+	}*/
+
+	ret.force = force;
+	return ret;
+}
 
 Force balance_force(Force a, Force b) {
 
@@ -309,38 +351,83 @@ Force get_speed(Particle a, float time) {
 }
 
 void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
-	int i,o;
+	Force * temp;
+	temp = (Force *) malloc (count * sizeof(Force *));
+	int i, o;
+	Force tmp;
 	float waittime = time;
-	TestCase watermelon;
-	watermelon.is_collision = 0;
-	for (i = 0; i < count; i ++) {
-		watermelon.is_collision = 0;
+	TestCase particle_collision;
+	for (i = 0; i < count; i ++ ){
+		if (p[i].shown == 1) {
+			temp[i] = p[i].force;
+			for (o = 0; o < count; o++) {
+			  	if (o != i && p[o].shown == 1) {
+					p[i].force = balance_force(p[i].force, grav_accel(p[i], p[o]));
+				}
+			}
+		}
+
+	}
+	for (i = 0; i < count; i ++ ){ 
 		if (p[i].shown == 1) {
 			waittime = time;
-			watermelon.a = p[i];
-			for (o = i+1; o < count; o++) {
-				if (p[o].shown == 1) {
-					watermelon.b = p[o];
-					watermelon.time = 0;
-					watermelon.is_collision = 0;
-					watermelon = is_collision(watermelon, time, 10);
-					if (watermelon.is_collision == 1) {
-
-						if (watermelon.time < (2*time)) {
-							waittime -= watermelon.time;
-							p[i].pos = wait(p[i], watermelon.time);
-							p[o].shown = 0;
-							p[i].force = balance_force(p[i].force, p[o].force);
-							p[i].speed = balance_force(p[i].speed, p[o].speed);
-						}
+	  		particle_collision.is_collision = 0;
+//			for (o = 0; o < count; o ++ ){
+		/*		if (o != i && p[o].shown == 1) {
+					p[i].force = balance_force(p[i].force, grav_accel(p[i], p[o]));
+				// Eeek. This is using the updated values for the positions in the particles. Try doing this in the first loop with setting temp[i] to prevent this.
+				}
+			}*/
+			/*
+				* Right. We have the balanced forces in the particle force. The original is in temp. 
+				* Unfortunately, it is INCREDIBLY computationally taxing to do is_collide with gravity.
+				* For this reason, and ONLY this reason, we do not use it in this. Instead we are very 
+				* careful, and instead we ASSUME that the person is running this relatively often. Ie,
+				* if you run this for 6 seconds with 0.01 second intervals, it will be pretty accurate.
+				* of course, if very high speeds are involved, it may miss (ie just checks that the x 
+				* and y value differences are less than the time update (time) times 10. This should 
+				* work for most, however if you are doing very important stuff, you may want to find
+				* another way.
+			*/
+			p[i].pos = wait(p[i], waittime);
+			p[i].speed = get_speed(p[i], waittime);
+			tmp = p[i].force;
+			p[i].force = temp[i];
+			temp[i] = tmp;
+		}
+	}
+	for (i = 0; i < count; i ++) {
+		if (p[i].shown == 1) {
+  			  for (o = i+1; o < count; o++) {
+				if (p[o].shown == 1) {		  
+		  			float xdiff = absol(p[i].pos.x - p[o].pos.x);
+					float ydiff = absol(p[i].pos.y - p[o].pos.y);
+					float maj = xdiff + ydiff;
+					if (maj < (time)) {
+						//Collision (more or less
+						p[o].shown = 0;
+						p[i].force = balance_force(p[i].force, p[o].force);
+						p[i].mass += p[o].mass;
+						p[i].speed = balance_force(p[i].speed, p[o].speed);
 					}
 				}
 			}
-			p[i].pos = wait(p[i], waittime);
-			p[i].speed = get_speed(p[i], waittime);
+		}	
+	}
+	for (i = 0; i < count; i++ ){
+		if (p[i].shown == 1) {
+	  		tmp = p[i].force;
+			p[i].force = temp[i];
+			temp[i] = tmp;
 		}
 	}
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
+	for (i = 0; i < count; i++) {
+		p[i].force = temp[i];
+	}
+	//Make it do collision detection down here.
+	return;
+		
 }
 
 Particle string_to_particle(char string[500]) {
@@ -360,6 +447,7 @@ Particle string_to_particle(char string[500]) {
 				case 4: p.speed.angle = atof(buffer); break;
 				case 5: p.pos.x = atof(buffer); break;
 				case 6: p.pos.y = atof(buffer); break;
+				case 7: p.mass = atof(buffer); break;
 			}
 		  	buffer_inc++;
 			for (l = 0; l < 500; l++) {
@@ -374,23 +462,6 @@ Particle string_to_particle(char string[500]) {
 	return p;
 }
 
-int count(char str[500][500]) {
-  	int i;
-	for (i = 0; i < 500; i++) {
-	  	if (strcmp(str[i], "")) {
-		  	return i;
-		}
-	}
-	return i;
-}
-
-void read_lines(Particle * p, char strings[500][500]) {
-	int i;
-	for (i = 0; i < count(strings); i++) {
-	  	p[i] = string_to_particle(strings[i]);
-	}
-	return;
-}
 
 char * substring(char * string, int start) {
   	int i;
@@ -435,14 +506,16 @@ int main(int argc, char * argv[]) {
 			}
 		}
 	} else {
-		p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,");
-		p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,");
-		p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,");
-		curr = 3;
+		//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
+		//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
+		//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
+		p[0] = string_to_particle("Large,0,0,0,0,0,0,1000000000000000000000");
+		p[1] = string_to_particle("Small,0,0,0,0,50,50,10000000000000");
+	  	curr = 2;
 	}
 	int i;
 	for (i = 0; i < 60; i++) {
-		wait_all(q, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
+		wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
 	}
 }
 
