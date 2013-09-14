@@ -354,6 +354,7 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	Force * temp;
 	temp = (Force *) malloc (count * sizeof(Force *));
 	int i, o;
+	Force tmp;
 	float waittime = time;
 	TestCase particle_collision;
 	for (i = 0; i < count; i ++ ){
@@ -390,7 +391,9 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			*/
 			p[i].pos = wait(p[i], waittime);
 			p[i].speed = get_speed(p[i], waittime);
+			tmp = p[i].force;
 			p[i].force = temp[i];
+			temp[i] = tmp;
 		}
 	}
 	for (i = 0; i < count; i ++) {
@@ -411,8 +414,17 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			}
 		}	
 	}
-
+	for (i = 0; i < count; i++ ){
+		if (p[i].shown == 1) {
+	  		tmp = p[i].force;
+			p[i].force = temp[i];
+			temp[i] = tmp;
+		}
+	}
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
+	for (i = 0; i < count; i++) {
+		p[i].force = temp[i];
+	}
 	//Make it do collision detection down here.
 	return;
 		
