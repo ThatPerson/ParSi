@@ -28,6 +28,7 @@
 int CSV_ON = 0; 
 int RAD_ON = 0;
 int INTERACTIVE_ON = 0;
+int READ_FILE = 0;
 typedef struct {
 	float x;
 	float y;
@@ -58,6 +59,8 @@ typedef struct {
 	float time;
 	int is_collision;
 } TestCase;
+
+#include "sim/parse.c"
 
 float power(float val, int power) {
 	float res = 1;
@@ -324,9 +327,9 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, (radians == 1)?to_radians(p[i].force.angle):p[i].force.angle, p[i].speed.force, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle);
+			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10.2f %10.2f %10.2f\n":"%f,%s,%f,%f,%f,%f,%f,%f\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.force, (radians == 1)?to_radians(p[i].force.angle):p[i].force.angle, p[i].speed.force, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle);
 		} else {
-			fprintf(stream,(csv == 0)?"%10f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
+			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-","-","-","-");
 		}
 	}
 	fprintf(stream,"\n");
@@ -425,6 +428,7 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	for (i = 0; i < count; i++) {
 		p[i].force = temp[i];
 	}
+	free(temp);
 	//Make it do collision detection down here.
 	return;
 		
@@ -475,6 +479,8 @@ char * substring(char * string, int start) {
 
 int main(int argc, char * argv[]) {
 	int pq;
+	char * file;
+
 	for (pq = 1; pq < argc; pq++) {
 	  	if (strcmp(argv[pq], "-c") == 0) {
 			CSV_ON = 1;
@@ -482,6 +488,14 @@ int main(int argc, char * argv[]) {
 			RAD_ON = 1;
 		} else if (strcmp(argv[pq], "-i") == 0) {
 		  	INTERACTIVE_ON = 1;
+		} else if (strcmp(argv[pq], "-ro") == 0) {
+			if (pq < argc-1) {
+				file = (char *) malloc(strlen(argv[pq+1])*sizeof(char *));
+				strcpy(file, argv[pq+1]);
+				READ_FILE = 1;
+			}
+			//file = (char *) malloc (sizeof(argv[pq+1]));
+			//strcpy(file, argv[pq+1]);
 		} else if (strcmp(argv[pq], "-h") == 0) {
 		  	printf("-c Enter CSV output mode");
 			printf("\n-r Use Radians as opposed to degrees");
@@ -489,33 +503,44 @@ int main(int argc, char * argv[]) {
 			return 1;
 		}
 	}
-  	Particle p[500];
-	Particle * q;
-	q = p;
-	int run = 0, curr = 0;
-	char temp[500];
-	if (INTERACTIVE_ON == 1) {
-	  	while (run == 0) {
-	  		scanf("%499s", temp);
-			if ((temp[0] == 'r') && (temp[1] == 'u') && (temp[2] == 'n')) {
-			  	
-			  	run = 1;
-			} else {
-			 	p[curr] = string_to_particle(temp);
-				curr++;
+  	if (READ_FILE == 0) {
+		Particle p[500];
+		Particle * q;
+		q = p;
+		int run = 0, curr = 0;
+		char temp[500];
+		if (INTERACTIVE_ON == 1) {
+		  	while (run == 0) {
+		  		scanf("%499s", temp);
+				if ((temp[0] == 'r') && (temp[1] == 'u') && (temp[2] == 'n')) {			  	
+				  	run = 1;
+				} else {
+				 	p[curr] = string_to_particle(temp);
+					curr++;
+				}
 			}
+		} else {
+			//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
+			//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
+			//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
+			p[0] = string_to_particle("Large,0,0,0,0,0,0,1000000000000000000000");
+			p[1] = string_to_particle("Small,0,0,0,0,50,50,10000000000000");
+		  	curr = 2;
+		}
+		int i;
+		for (i = 0; i < 60; i++) {
+			wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
 		}
 	} else {
-		//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
-		//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
-		//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
-		p[0] = string_to_particle("Large,0,0,0,0,0,0,1000000000000000000000");
-		p[1] = string_to_particle("Small,0,0,0,0,50,50,10000000000000");
-	  	curr = 2;
+		Response p = get_config(file);
+		float qr;
+		printf("%f\n", p.items[0].mass);
+	//	printf("%f %f %f %f %f %s", p.items[0].pos.x, p.items[0].pos.y, p.items[0].force.force, p.items[0].force.angle, p.items[0].mass, p.items[0].name);
+		for (qr = 0; qr < p.time;) {
+	 		wait_all(p.items, p.length, p.inc, qr, (qr == 0)?1:0, RAD_ON, stdout);
+			qr += p.inc;
+		}
 	}
-	int i;
-	for (i = 0; i < 60; i++) {
-		wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
-	}
+	//free(file);
 }
 

@@ -1,0 +1,21 @@
+[Cannon]
+X 43
+Y 23
+A 45
+F 12
+SF 18
+SA 45
+M 2
+
+[Earth]
+X 0
+Y 0
+A 0
+F 0
+SF 0
+SA 0
+M 20000
+
+;i 0.1
+;t 6
+
