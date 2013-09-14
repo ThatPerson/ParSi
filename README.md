@@ -3,11 +3,15 @@ ParSi
 
 Particle Simulator
 
-I aim to build this up overtime, Feature list:
+ParSi is a particle simulator which can be used in a (pretty shocking) interactive mode (not recommended), or as a library. It generates CSV files and table files with data about particle movements as defined by you.
+It currently supports the following:
+* persistant speed.
+* curved paths (speed and force are different angles)
+* force balancing
+* resolving a force into x and y
+* resolving x and y into a force
+* collision detection
 
-- [x] Balancing forces
-- [X] Detecting collisions
-- [X] Working out what happens post collision
-- [x] Working out what happens in 5 seconds
+In a upcoming version in the gravity branch I have added gravity support. This allows you to have true to life orbits, etc.
 
 This all works in a 2D plane
