@@ -3,7 +3,7 @@ cd ..
 make
 cd outputs
 rm output.txt output.csv output_radians.csv output_radians.txt
-../main >> output.txt
-../main -c >> output.csv
-../main -r >> output_radians.txt
-../main -c -r >> output_radians.csv
+../main -if ../sim/file.sim -of output.txt
+../main -c -if ../sim/file.sim -of output.csv
+../main -r -if ../sim/file.sim -of output_radians.txt
+../main -r -c -if ../sim/file.sim -of output_radians.csv

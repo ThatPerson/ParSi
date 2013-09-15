@@ -480,7 +480,7 @@ char * substring(char * string, int start) {
 int main(int argc, char * argv[]) {
 	int pq;
 	char * file;
-
+	FILE * output = stdout;
 	for (pq = 1; pq < argc; pq++) {
 	  	if (strcmp(argv[pq], "-c") == 0) {
 			CSV_ON = 1;
@@ -488,7 +488,7 @@ int main(int argc, char * argv[]) {
 			RAD_ON = 1;
 		} else if (strcmp(argv[pq], "-i") == 0) {
 		  	INTERACTIVE_ON = 1;
-		} else if (strcmp(argv[pq], "-ro") == 0) {
+		} else if (strcmp(argv[pq], "-if") == 0) {
 			if (pq < argc-1) {
 				file = (char *) malloc(strlen(argv[pq+1])*sizeof(char *));
 				strcpy(file, argv[pq+1]);
@@ -496,10 +496,16 @@ int main(int argc, char * argv[]) {
 			}
 			//file = (char *) malloc (sizeof(argv[pq+1]));
 			//strcpy(file, argv[pq+1]);
+		} else if (strcmp(argv[pq], "-of") == 0) {
+			if (pq < argc-1)
+				output = fopen(argv[pq+1], "w");
 		} else if (strcmp(argv[pq], "-h") == 0) {
 		  	printf("-c Enter CSV output mode");
 			printf("\n-r Use Radians as opposed to degrees");
-			printf("\n-i enter interactive mode.\n");
+			printf("\n-if Use .sim file as basis for simulation");
+			printf("\n-of Put output to file.");
+			printf("\n-i enter interactive mode.");
+			printf("\nAn example of this would be:\n\tParSi -if file.sim -of output.csv -r -c\n");
 			return 1;
 		}
 	}
@@ -529,15 +535,14 @@ int main(int argc, char * argv[]) {
 		}
 		int i;
 		for (i = 0; i < 60; i++) {
-			wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON,stdout);
+			wait_all(p, curr, 0.1, i*0.1, (i==0)?1:0, RAD_ON, output);
 		}
 	} else {
 		Response p = get_config(file);
 		float qr;
-		printf("%f\n", p.items[0].mass);
 	//	printf("%f %f %f %f %f %s", p.items[0].pos.x, p.items[0].pos.y, p.items[0].force.force, p.items[0].force.angle, p.items[0].mass, p.items[0].name);
 		for (qr = 0; qr < p.time;) {
-	 		wait_all(p.items, p.length, p.inc, qr, (qr == 0)?1:0, RAD_ON, stdout);
+	 		wait_all(p.items, p.length, p.inc, qr, (qr == 0)?1:0, RAD_ON, output);
 			qr += p.inc;
 		}
 	}
