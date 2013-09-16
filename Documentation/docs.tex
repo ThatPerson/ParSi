@@ -1,0 +1,113 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\lstset{language=C}
+%Gummi|065|=)
+\title{\textbf{ParSi 1.0}}
+\author{Benjamin Tatman}
+\date{}
+\begin{document}
+
+\maketitle
+
+\section{Before you start}
+\subsection {What is ParSi?}
+ParSi is a Particle Simulator. It is a relatively simple Particle Simulator, and does not attempt any graphics, instead prefering to release the data in either a nice tabulated format, or a CSV file. \newline
+It was originally written over the summer, and was designed during a few maths lessons. Enough with the back story.\newline
+It can output in two ways and take input in three ways. There is also the option to use radians, if this is applicable to you. This will be explained over the following pages, along with an explanation of how ParSi works, incase you wish to get involved.
+\subsection {Giving Feedback}
+ParSi is still in active development, and should you wish to want to get involved, I would recommend reading this document. If you want to, you can fork it on GitHub, at \emph{http://www.github.com/ThatPerson/ParSi}, and if you do could I please request that you send me an email at \emph{ben@tatmans.co.uk} in order to give me some idea of who is working on it, and what you are trying to do. This will hopefully allow me to help you get used to the codebase.\newline
+If you are not a programmer, and just want to use ParSi, and it helps you with what you are doing, please leave me a note at the same email address as above! I very much enjoy reading what people are doing with it, and it will also allow you to give suggestions. If you are writing a paper and using ParSi to help, and the paper is not restricted (ie, if it is a paper which has been released to the world and is online) please also send me a link! It is always nice to read about what people have done with it.
+
+\section {Arguments}
+ParSi has a few arguments, all of which can be seen with a simple \(ParSi  -h\). They are also listed below.
+\begin{lstlisting}
+-c Enter CSV output mode
+-r Use Radians as opposed to degrees
+-if Use .sim file as basis for simulation
+-of Put output to file.
+-i enter interactive mode.
+\end{lstlisting}
+These are largely self explanatory, and could be used as follows:
+\begin{lstlisting}
+ParSi -c -r -if file.sim -of output.csv
+\end{lstlisting}
+Which would read in a 'sim' file and output a CSV file called 'output.csv' in radians.
+
+\section{Inputs}
+ParSi can take input in one of three ways. You can either compile it in (this will not be faster, but may allow you to do more advanced things, such as modifying forces in the simulation), use the interactive mode, or write a .sim file.
+\subsection {Compiling it in}
+I would not necessarily recommend doing this, however it is possible. When doing this, there are a few functions and structs you should be aware of. These are as follows.
+\begin{lstlisting}
+ 42 typedef struct {
+ 43         char name[500];
+ 44         Force speed;
+ 45         Force force;
+ 46         Position pos;
+ 47         int mass;
+ 48         int shown;
+ 49 } Particle;
+\end{lstlisting}
+The Particle definition, and can be initiated with Particle p[], or such like. It keeps track of the speed (I know it is a Force definition, however the Force struct is a Vector. It is still named Force as I have not gotten around to changing it), the forces affecting it, the position (x and y), the mass, whether or not it is shown, and the name of the particle. \newline
+Rarely are Particles seen alone, more often are they seen in arrays. This is shown in the code I use lower down, where I use the wait\_all function.
+\subsubsection{wait\_all()}
+wait\_all is a function you will likely use a lot. It is defined as:
+\begin{lstlisting}
+356 void wait_all(Particle p[], int count, float time, 
+float display_time, int show_headers, int radians,
+FILE * output);
+\end{lstlisting}
+While this may appear daunting, it is not very much so. It consists of the following:
+\begin {lstlisting}
+Particle p[];
+int count;
+float time;
+float display_time;
+int show_headers;
+int radians;
+FILE * output;
+\end{lstlisting}
+These are quite verbose. 'p' is an array of Particles, specifically the particles in the collision. Due to how the 'Particle' definition is, you are required to pass 'count' as the number of items in the array. 'time' tells it how long to move them for, and 'display\_time' tells it what to pass to tabulate\_particles(). \newline
+Then, we have 'show\_headers'. This tells tabulate\_particles() whether or not it needs to show the headers of the file, and if used in a for loop this should only apply to the first item. If not, it ends up messy. 'radians' tells it whether or not it should use, well, radians, and 'output' is a FILE to output to. You could set this as stdout, or another FILE object. This is how the '-of' parameter works.\newline
+\subsubsection{balance\_force()}
+Another useful function is balance\_force(). This simply takes two forces as arguments, and returns the average, which can be very useful for collisions or gravity. \newline
+
+\textbf{Warning. Maths ahead.}
+It does this by utilising yet another function, called resolve. Resolve turns a force into a x and a y force, by using the knowledge that if the angle is between certain parameters, then the direction of the force will be in a certain direction. \newline
+Ie, if the angle of the force is 23$^\circ$, then you know that the x force can be represented by +sin, and the y force by +cos, as cos is the adjacent and as the force starts from straight up, then the adjacent is 90$^\circ$. If it is 105$^\circ$, then it can be known as x = +cos and y = -sin. This continues around for the rest in resolve. \newline
+As all of these forces are on the X and Y directions in the same direction, we can just add them. Then, we use anti resolve which just does what resolve does, only from two forces to one. This then gives it a single force which sums up the two forces, which can then be used.
+
+\subsection {From a file}
+ParSi supports reading .sim files. These are a special file type known only to ParSi (I could not find an applicable standard) and an example of one is below.
+\begin {lstlisting}
+  1 [Cannon]
+  2 X 0
+  3 Y 0
+  4 A 0
+  5 F 0
+  6 SF 18
+  7 SA 45
+  8 M 100000000000000
+  9 
+ 10 [Earth]
+ 11 X 50
+ 12 Y 50
+ 13 A 0
+ 14 F 0
+ 15 SF 0
+ 16 SA 0
+ 17 M 200000000000000000
+ 18 
+ 19 ;i 0.01
+ 20 ;t 6
+\end{lstlisting}
+Now, this may seem complex. It isn't. You have the [] blocks, which contain the name of the particle. All items below that belong to said Particle, until the next particle definition.\newline
+X represents the X coordinates, and Y similarly. A is the angle of the force, F is the 'power' of the force (in Newtons), and SF and SA are Speed Force and Speed Angle, and refer to the x.speed.force and x.speed.angle objects. M represents mass.\newline
+Items beginning with a ';' are global settings. In this example, we have i set to 0.01 and t set to 6. The 'i' is the amount of time it should increment by, and 't' is the total time. In this example, it will run the two particles for 6 seconds, checking at each 0.01 seconds (the closer the checking time time more accurate, as it calculates gravity at each of these, otherwise you end up with a jagged curve.
+
+\subsection {Interactive}
+Interactive is probably the worst of the modes.
+
+\section{One more thing}
+If you are wondering where your old default text is; it has been stored as a template. The template menu can be used to access and restore it. 
+
+\end{document}
