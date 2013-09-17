@@ -12,6 +12,27 @@ char * substr(char * orig, int start, int length) {
 	return ret;
 }
 
+int intlength(int l) {
+	if (l != 0) {
+		return floor(log10(abs(l))) + 1;
+	}
+	return -1;
+}
+
+char * to_si(float n) {
+	
+	int l = (int) n;
+	int length = intlength(l);
+	int primary = l/(pow(10, length));
+	char * ret = (char *) malloc (sizeof(char)*500);
+	//sprintf(ret, "%dx10^%d appr.\n", primary, length);
+	sprintf(ret, "NaN");
+	return ret;
+
+}
+
+
+
 Response get_config(char filename[]) {
 	Response r;
 	r.length = -1;
@@ -23,12 +44,12 @@ Response get_config(char filename[]) {
 				case '[': r.length++; r.items[r.length].shown = 1; strcpy(r.items[r.length].name, substr(line, 1, strlen(line)-3)); break;
 				case 'X': r.items[r.length].pos.x = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'Y': r.items[r.length].pos.y = atof(substr(line, 2, strlen(line)-2)); break;
-				case 'A': r.items[r.length].force.angle = atof(substr(line, 2, strlen(line)-2)); break;
-				case 'F': r.items[r.length].force.force = atof(substr(line, 2, strlen(line)-2)); break;
-				case 'M': r.items[r.length].mass = atof(substr(line, 2, strlen(line)-2)); break;
+				case 'A': r.items[r.length].accel.angle = atof(substr(line, 2, strlen(line)-2)); break;
+				case 'F': r.items[r.length].accel.accel = atof(substr(line, 2, strlen(line)-2)); break;
+				case 'M': r.items[r.length].mass = atoll(substr(line, 2, strlen(line)-2)); break;
 				case 'S': 
 					  switch (line[1]) {
-					  	case 'A': r.items[r.length].speed.force = atof(substr(line, 3, strlen(line)-4)); break;
+					  	case 'A': r.items[r.length].speed.accel = atof(substr(line, 3, strlen(line)-4)); break;
 						case 'F': r.items[r.length].speed.angle = atof(substr(line, 3, strlen(line)-4)); break;
 					  }
 				case ';':
