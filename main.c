@@ -328,7 +328,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10s %10.2f %10.2f %10.2f %10s\n":"%f,%s,%f,%f,%f,%s,%f,%f,%f,%s\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,to_si((((float)p[i].mass) * p[i].accel.accel)), (radians == 1)?to_radians(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle,to_si(p[i].mass));
+			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10g %10.2f %10.2f %10.2f %10g\n":"%f,%s,%f,%f,%f,%g,%f,%f,%f,%g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?to_radians(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle,(p[i].mass));
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
