@@ -72,12 +72,12 @@ float power(float val, int power) {
 	return res;
 }
 
-float to_radians(float degrees) {
+float deg_to_rad(float degrees) {
 	// degrees * pi/180
 	return degrees * M_PI / 180;
 }
 
-float to_degrees(float radians) {
+float rad_to_deg(float radians) {
 	return radians / (M_PI/180);
 
 	//=B2/(D1/180)
@@ -99,32 +99,32 @@ Vector new_accel(float accel, float angle) {
 	return f;
 }
 
-Resolved resolve(Vector f) {
+Resolved vtof(Vector f) {
 	Resolved retur;
 	retur.x.angle = 90; //It is 90 degrees from the y axis
 	retur.y.angle = 0;
 	
 	if (f.angle >= 0 && f.angle < 90) {
-		retur.x.accel = f.accel * sin(to_radians(f.angle));
-		retur.y.accel = f.accel * cos(to_radians(f.angle));
+		retur.x.accel = f.accel * sin(deg_to_rad(f.angle));
+		retur.y.accel = f.accel * cos(deg_to_rad(f.angle));
 	} else if (f.angle >= 90 && f.angle < 180) {
 		f.angle = f.angle - 90;
-		retur.x.accel = f.accel * cos(to_radians(f.angle));
-		retur.y.accel = -f.accel * sin(to_radians(f.angle));
+		retur.x.accel = f.accel * cos(deg_to_rad(f.angle));
+		retur.y.accel = -f.accel * sin(deg_to_rad(f.angle));
 	} else if (f.angle >= 180 && f.angle < 270) {
 		f.angle = f.angle - 180;
-		retur.x.accel = -f.accel * sin(to_radians(f.angle));
-		retur.y.accel = -f.accel * cos(to_radians(f.angle));
+		retur.x.accel = -f.accel * sin(deg_to_rad(f.angle));
+		retur.y.accel = -f.accel * cos(deg_to_rad(f.angle));
 	} else {
 		f.angle = f.angle - 270;
-		retur.x.accel = -f.accel * cos(to_radians(f.angle));
-		retur.y.accel = f.accel * sin(to_radians(f.angle));
+		retur.x.accel = -f.accel * cos(deg_to_rad(f.angle));
+		retur.y.accel = f.accel * sin(deg_to_rad(f.angle));
 	}
 	
 	return retur;
 }
 
-Vector anti_resolve(Resolved f) {
+Vector ftov(Resolved f) {
 	Vector p;
 	
 	p.accel = sqrt(power(f.x.accel, 2) + power(f.y.accel, 2));
@@ -132,19 +132,19 @@ Vector anti_resolve(Resolved f) {
 	if ((f.x.accel < 0)	&& (f.y.accel < 0)) {
 		// it matches >= 180 < 270
 		p.angle = atan((absol(f.x.accel)/absol(f.y.accel)));
-		p.angle = 180 + to_degrees(p.angle);
+		p.angle = 180 + rad_to_deg(p.angle);
 	} else if ((f.x.accel < 0) && (f.y.accel >= 0)) {
 		// then it is in the final one, or > 270
 		p.angle = atan(f.y.accel/absol(f.x.accel));
-		p.angle = 270 + to_degrees(p.angle);
+		p.angle = 270 + rad_to_deg(p.angle);
 	} else if ((f.x.accel >= 0) && (f.y.accel < 0)) {
 		// then it is >= 90, < 180
 		p.angle = atan(absol(f.y.accel)/f.x.accel);
-		p.angle = 90 + to_degrees(p.angle);
+		p.angle = 90 + rad_to_deg(p.angle);
 	} else {
 		// then it is the first one, or 0 < x < 90
 		p.angle = atan(f.x.accel/f.y.accel);
-		p.angle = to_degrees(p.angle);
+		p.angle = rad_to_deg(p.angle);
 	}
 	return p;
 }
@@ -176,7 +176,7 @@ Vector grav_accel(Particle a, Particle b) {
 	w.x.angle = 90;
 	w.y.accel = ydiff;
 	w.y.angle = 0;
-	Vector ret = anti_resolve(w);
+	Vector ret = ftov(w);
 	
 	/*if (ret.angle <= 90) {
 		ret.angle += 180;
@@ -195,8 +195,8 @@ Vector grav_accel(Particle a, Particle b) {
 Vector balance_accel(Vector a, Vector b) {
 
 
-	Resolved ax = resolve(a);
-	Resolved bx = resolve(b);
+	Resolved ax = vtof(a);
+	Resolved bx = vtof(b);
 
 
 	Position new;
@@ -211,14 +211,14 @@ Vector balance_accel(Vector a, Vector b) {
 	float tmpangle;
 	//printf("New %f %f\n", absol(new.x), absol(new.y));
 	if (new.x >= 0 && new.y >= 0) {
-		tmpangle = to_degrees(atan(absol(new.x)/absol(new.y)));
+		tmpangle = rad_to_deg(atan(absol(new.x)/absol(new.y)));
 		// We are in the top right
 	} else if (new.x >= 0 && new.y <= 0) {
-		tmpangle = to_degrees(atan(absol(new.y)/absol(new.x))) + 90;
+		tmpangle = rad_to_deg(atan(absol(new.y)/absol(new.x))) + 90;
 	} else if (new.x <= 0 && new.y <= 0) {
-		tmpangle = to_degrees(atan(absol(new.x)/absol(new.y))) + 180;
+		tmpangle = rad_to_deg(atan(absol(new.x)/absol(new.y))) + 180;
 	} else if (new.x <= 0 && new.y >= 0) {
-		tmpangle = to_degrees(atan(absol(new.y)/absol(new.x))) + 270;
+		tmpangle = rad_to_deg(atan(absol(new.y)/absol(new.x))) + 270;
 	}
 	result.angle = tmpangle;
 	return result;
@@ -227,11 +227,11 @@ Vector balance_accel(Vector a, Vector b) {
 Position wait(Particle a, float time) {
 	// s = ut+1/2at^2
 	float xinc, yinc;
-	Resolved x = resolve(a.accel);
+	Resolved x = vtof(a.accel);
 	//s = 1/2at^2
 
 	//We need to resolve the speed of the particle into x and y to use in s=ut+1/2at^2. Because resolve can do this, we just make a new Vector with the speed as the accel
-	Resolved p = resolve(a.speed);
+	Resolved p = vtof(a.speed);
 
 	//xinc = (p.x.accel*time) + ((x.x.accel*time*time)/2);
 	//yinc = (p.y.accel*time) + ((x.y.accel*time*time)/2);
@@ -321,26 +321,25 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Accel", "Force",  "Angle", "Speed", "SAngle", "Mass");
 		if (csv == 0) {
 			for (i = 0; i < 109; i++) {
-				fprintf(stream, "-");
+				fprintf(stream, "#");
 			}
 			fprintf(stream, "\n");
 		}
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10g %10.2f %10.2f %10.2f %10g\n":"%f,%s,%f,%f,%f,%g,%f,%f,%f,%g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?to_radians(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?to_radians(p[i].speed.angle):p[i].speed.angle,(p[i].mass));
+			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10g %10.2f %10.2f %10.2f %10g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass));
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
 	}
-	fprintf(stream,"\n");
 }	
 
 Vector get_speed(Particle a, float time) {
 	// v = u + at. a = a.accel.accel. t = time. u = a.speed.
 	
-	Resolved q = resolve(a.speed);
-	Resolved p = resolve(a.accel);
+	Resolved q = vtof(a.speed);
+	Resolved p = vtof(a.accel);
 	
 	float xsp = q.x.accel + (p.x.accel*time);
 	float ysp = q.y.accel + (p.y.accel*time);
@@ -351,7 +350,7 @@ Vector get_speed(Particle a, float time) {
 	l.y.accel = ysp;
 	l.x.angle = 90;
 	l.y.angle = 0;
-	return anti_resolve(l);
+	return ftov(l);
 }
 
 void wait_all(Particle p[], int count, float time, float display_time, int show_headers, int radians, FILE * output) {
