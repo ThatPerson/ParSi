@@ -345,7 +345,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	if (headers == 1) {	
 		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Accel", "Force",  "Angle", "Speed", "SAngle", "Mass", "Radius");
 		if (csv == 0) {
-			for (i = 0; i < 109; i++) {
+			for (i = 0; i < 120; i++) {
 				fprintf(stream, "#");
 			}
 			fprintf(stream, "\n");
@@ -353,7 +353,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10g %10.2G %10.2G %10.2G %10g %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
+			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
