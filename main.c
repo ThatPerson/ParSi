@@ -80,7 +80,8 @@ Particle after_graph(Particle q, Particle p) {
 	Particle resp = q;
 	if (check_collision(p, q) == 1) {
 		// There is a collision
-	  	resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
+	  	printf("WE HAVE COLLISION\n");
+	  	//resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
 		resp.accel.angle = 360-resp.accel.angle;
 		resp.speed.angle = 360-resp.speed.angle;
 	}
