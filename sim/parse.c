@@ -47,6 +47,7 @@ Response get_config(char filename[]) {
 				case 'A': r.items[r.length].accel.angle = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'F': r.items[r.length].accel.accel = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'M': r.items[r.length].mass = atoll(substr(line, 2, strlen(line)-2)); break;
+				case 'R': r.items[r.length].radius = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'S': 
 					  switch (line[1]) {
 					  	case 'A': r.items[r.length].speed.accel = atof(substr(line, 3, strlen(line)-4)); break;

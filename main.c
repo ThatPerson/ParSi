@@ -47,6 +47,7 @@ typedef struct {
 	Position pos;
 	float mass;
 	int shown;
+	float radius;
 } Particle;
 
 typedef struct {
@@ -62,6 +63,29 @@ typedef struct {
 } TestCase;
 
 #include "sim/parse.c"
+
+int check_collision(Particle p, Particle q) {
+	/* To calculate a collision between two items each of which has a radius r, we use Pythag.
+	 * Ie, we get sqrt(abs(a.x-b.x)^2 + abs(a.y-b.y))
+	 */
+	float dist = sqrt(pow(abs(p.pos.x-q.pos.x), 2) + pow(abs(p.pos.y-q.pos.y), 2));
+	if (dist <= p.radius+q.radius) {
+	  	//Collision
+	  	return 1;
+	}
+	return 0;
+}
+
+Particle after_graph(Particle q, Particle p) {
+	Particle resp = q;
+	if (check_collision(p, q) == 1) {
+		// There is a collision
+	  	resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
+		resp.accel.angle = 360-resp.accel.angle;
+		resp.speed.angle = 360-resp.speed.angle;
+	}
+	return resp;
+}
 
 float power(float val, int power) {
 	float res = 1;
@@ -318,7 +342,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	int i;
 
 	if (headers == 1) {	
-		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Accel", "Force",  "Angle", "Speed", "SAngle", "Mass");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Accel", "Force",  "Angle", "Speed", "SAngle", "Mass", "Radius");
 		if (csv == 0) {
 			for (i = 0; i < 109; i++) {
 				fprintf(stream, "#");
@@ -328,7 +352,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2f %10s %10.2f %10.2f %10.2f %10g %10.2f %10.2f %10.2f %10g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass));
+			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10g %10.2G %10.2G %10.2G %10g %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
@@ -403,7 +427,7 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 		if (p[i].shown == 1) {
   			  for (o = i+1; o < count; o++) {
 				if (p[o].shown == 1) {		  
-		  			float xdiff = absol(p[i].pos.x - p[o].pos.x);
+		  		/*	float xdiff = absol(p[i].pos.x - p[o].pos.x);
 					float ydiff = absol(p[i].pos.y - p[o].pos.y);
 					float maj = xdiff + ydiff;
 					if (maj < (time)) {
@@ -412,7 +436,8 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 						p[i].accel = balance_accel(p[i].accel, p[o].accel);
 						p[i].mass += p[o].mass;
 						p[i].speed = balance_accel(p[i].speed, p[o].speed);
-					}
+					}*/
+				  	p[i] = after_graph(p[i], p[o]);
 				}
 			}
 		}	
