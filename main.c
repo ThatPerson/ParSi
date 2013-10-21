@@ -45,6 +45,7 @@ typedef struct {
 	Vector speed;
 	Vector accel;
 	Position pos;
+	float surface_tension; 
 	float mass;
 	int shown;
 	float radius;
@@ -64,29 +65,7 @@ typedef struct {
 
 #include "sim/parse.c"
 
-int check_collision(Particle p, Particle q) {
-	/* To calculate a collision between two items each of which has a radius r, we use Pythag.
-	 * Ie, we get sqrt(abs(a.x-b.x)^2 + abs(a.y-b.y))
-	 */
-	float dist = sqrt(pow(abs(p.pos.x-q.pos.x), 2) + pow(abs(p.pos.y-q.pos.y), 2));
-	if (dist <= p.radius+q.radius) {
-	  	//Collision
-	  	return 1;
-	}
-	return 0;
-}
-
-Particle after_graph(Particle q, Particle p) {
-	Particle resp = q;
-	if (check_collision(p, q) == 1) {
-		// There is a collision
-	  	printf("WE HAVE COLLISION\n");
-	  	//resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
-		resp.accel.angle = 360-resp.accel.angle;
-		resp.speed.angle = 360-resp.speed.angle;
-	}
-	return resp;
-}
+Vector balance_accel(Vector a, Vector b);
 
 float power(float val, int power) {
 	float res = 1;
@@ -172,6 +151,35 @@ Vector ftov(Resolved f) {
 		p.angle = rad_to_deg(p.angle);
 	}
 	return p;
+}
+
+
+int check_collision(Particle p, Particle q) {
+	/* To calculate a collision between two items each of which has a radius r, we use Pythag.
+	 * Ie, we get sqrt(abs(a.x-b.x)^2 + abs(a.y-b.y))
+	 */
+	float dist = sqrt(pow(abs(p.pos.x-q.pos.x), 2) + pow(abs(p.pos.y-q.pos.y), 2));
+	if (dist <= p.radius+q.radius) {
+	  	//Collision
+	  	return 1;
+	}
+	return 0;
+}
+
+Particle after_graph(Particle q, Particle p) {
+	Particle resp = q;
+	Vector pne, tmp;
+	if (check_collision(p, q) == 1) {
+		// There is a collision
+	  	printf("WE HAVE COLLISION\n");
+	       	pne.accel = p.surface_tension * q.surface_tension * q.accel.accel * q.mass;
+		pne.angle = q.accel.angle;
+		resp.accel = balance_accel(resp.accel, pne);
+		pne.accel = (pne.accel / q.accel.accel) * q.speed.accel;
+		resp.speed = balance_accel(resp.speed, pne);	
+	  	//resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
+	}
+	return resp;
 }
 
 Vector grav_accel(Particle a, Particle b) {
