@@ -52,6 +52,7 @@ Response get_config(char filename[]) {
 					  switch (line[1]) {
 					  	case 'A': r.items[r.length].speed.accel = atof(substr(line, 3, strlen(line)-4)); break;
 						case 'F': r.items[r.length].speed.angle = atof(substr(line, 3, strlen(line)-4)); break;
+					  	case 'T': r.items[r.length].surface_tension = atof(substr(line,3,strlen(line)-4)); break;
 					  }
 				case ';':
 				  	 switch (line[1]) {
