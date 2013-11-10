@@ -101,13 +101,59 @@ ParSi supports reading .sim files. These are a special file type known only to P
  20 ;t 6
 \end{lstlisting}
 Now, this may seem complex. It isn't. You have the [] blocks, which contain the name of the particle. All items below that belong to said Particle, until the next particle definition.\newline
-X represents the X coordinates, and Y similarly. A is the angle of the force, F is the 'power' of the force (in Newtons), and SF and SA are Speed Force and Speed Angle, and refer to the x.speed.force and x.speed.angle objects. M represents mass.\newline
+
+\begin{center}
+\begin{tabular}{ l l }
+	X & The X position of the particle \\
+	Y & The Y position of the particle \\
+	F & The Force exerted on the object \\
+	A & The angle at which the force is exerted (degrees) \\
+	SF & The speed of the object \\
+	SA & The angle in which the speed acts \\
+	M & The mass of the object \\
+	R & The radius of the object \\
+	ST & The surface tension of the object (NCI) \\
+
+\end{tabular}
+\end{center}
+* (NCI) means not currently implemented\newline
 Items beginning with a ';' are global settings. In this example, we have i set to 0.01 and t set to 6. The 'i' is the amount of time it should increment by, and 't' is the total time. In this example, it will run the two particles for 6 seconds, checking at each 0.01 seconds (the closer the checking time time more accurate, as it calculates gravity at each of these, otherwise you end up with a jagged curve.
 
 \subsection {Interactive}
-Interactive is probably the worst of the modes.
+Interactive is probably the worst of the modes.\newline
+I would not recommend it upon anyone, however if you really are insane enough to wish to use it, then I will explain. As interactive has not been updated in the changes adding radi or surface tension, it cannot import these. What it can do, however, is create very simple simulations. For example, below I have a .sim file and the equivalent interactive mode input.
+\begin{lstlisting}
+// SIM file
+###############
+[ball]
+X 25
+Y 30
+A 0
+F 0
+SF 10
+SA 180
+M 10
+R 0
+ST 0
 
-\section{One more thing}
-If you are wondering where your old default text is; it has been stored as a template. The template menu can be used to access and restore it. 
+// Interactive input
+ball,0,0,10,180,25,30,10
+\end{lstlisting}
+As you can see, not very useful. If you just quickly want to test something, however, it can be used. The placement of values is shown below.
+
+\begin{center}
+\begin{tabular}{ l l }
+	1st & Name \\
+	2nd & Force \\
+	3rd & Angle of the force \\
+	4th & Velocity \\
+	5th & Angle of velocity \\
+	6th & X position \\
+	7th & Y position \\
+	8th & Mass \\
+\end{tabular}
+\end{center}
+
+
 
 \end{document}
