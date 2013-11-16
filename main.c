@@ -43,7 +43,7 @@ typedef struct {
 typedef struct {
 	char name[500];
 	Vector speed;
-	Vector accel;
+	Vector force;
 	Position pos;
 	float surface_tension; 
 	float mass;
@@ -98,9 +98,9 @@ float absol(float in) {
 	return new; //If value is +, then we do nothing.
 }
 
-Vector new_accel(float accel, float angle) {
+Vector new_force(float force, float angle) {
 	Vector f;
-	f.value = accel;
+	f.value = force;
 	f.angle = angle;
 	return f;
 }
@@ -174,17 +174,17 @@ Particle after_graph(Particle q, Particle p) {
 	if (check_collision(p, q) == 1) {
 		// There is a collision
 	  	printf("WE HAVE COLLISION\n");
-	    pne.value = p.surface_tension * q.surface_tension * q.accel.value;
-		pne.angle = q.accel.angle;
-		resp.accel = balance_vector(resp.accel, pne);
-		pne.value = (divide(pne.value, q.accel.value)) * q.speed.value;
+	    pne.value = p.surface_tension * q.surface_tension * q.force.value;
+		pne.angle = q.force.angle;
+		resp.force = balance_vector(resp.force, pne);
+		pne.value = (divide(pne.value, q.force.value)) * q.speed.value;
 		resp.speed = balance_vector(resp.speed, pne);	
 	  	//resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
 	}
 	return resp;
 }
 
-Vector grav_accel(Particle a, Particle b) {
+Vector grav_force(Particle a, Particle b) {
 	float xdiff = b.pos.x - a.pos.x;
 	float ydiff = b.pos.y - a.pos.y;
 
@@ -199,12 +199,12 @@ Vector grav_accel(Particle a, Particle b) {
 	/*float q = g/b.mass;
 	q = q/r;
 	// F = m * a
-	float accel = a.mass * q;
+	float force = a.mass * q;
 	*/
 	float top = 6.67 * a.mass * b.mass;
 	top = top * pow(10, -11);
 	float ma = top/pow(r,2);
-	//float accel = ma/a.mass; // Force = Mass * Acceleration, so Acceleration = Force/Mass. Because with this the acceleration given is not the force, it should not affect it as such
+	//float force = ma/a.mass; // Force = Mass * forceeration, so forceeration = Force/Mass. Because with this the forceeration given is not the force, it should not affect it as such
 	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
 	w.x.value = xdiff;
@@ -262,14 +262,14 @@ Vector balance_vector(Vector a, Vector b) {
 Position wait(Particle a, float time) {
 	// s = ut+1/2at^2
 	float xinc, yinc;
-	Resolved x = vtof(a.accel);
+	Resolved x = vtof(a.force);
 	//s = 1/2at^2
 
-	//We need to resolve the speed of the particle into x and y to use in s=ut+1/2at^2. Because resolve can do this, we just make a new Vector with the speed as the accel
+	//We need to resolve the speed of the particle into x and y to use in s=ut+1/2at^2. Because resolve can do this, we just make a new Vector with the speed as the force
 	Resolved p = vtof(a.speed);
 
-	//xinc = (p.x.accel*time) + ((x.x.accel*time*time)/2);
-	//yinc = (p.y.accel*time) + ((x.y.accel*time*time)/2);
+	//xinc = (p.x.force*time) + ((x.x.force*time*time)/2);
+	//yinc = (p.y.force*time) + ((x.y.force*time*time)/2);
 	// What on earth went on there?
 	xinc = (p.x.value*time) + (((divide(x.x.value,a.mass)*(time*time))/2));
 	yinc = (p.y.value*time) + (((divide(x.y.value,a.mass)*(time*time))/2));
@@ -283,7 +283,7 @@ void print_position(Position l) {
 	printf("Position:\n\tX: %f\n\tY: %f\n", l.x, l.y);
 }
 
-void print_accel(Vector i) {
+void print_force(Vector i) {
 	printf("Particle\n\tPower: %fN\n\tAngle: %f\n", i.value, i.angle);
 }
 
@@ -330,12 +330,12 @@ TestCase is_collision(TestCase q, float within, float precision) {
 }
 	
 
-Particle new_particle(float x, float y, float accel, float angle) {
+Particle new_particle(float x, float y, float force, float angle) {
 	Particle t;
 	t.pos.x = x;
 	t.pos.y = y;
-	t.accel.value = accel;
-	t.accel.angle = angle;
+	t.force.value = force;
+	t.force.angle = angle;
 	t.speed.angle = angle;
 	t.shown = 1;
 	return t;
@@ -353,7 +353,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	int i;
 
 	if (headers == 1) {	
-		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Accel",  "Angle", "Speed", "SAngle", "Mass", "Radius");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "force",  "Angle", "Speed", "SAngle", "Mass", "Radius");
 		if (csv == 0) {
 			for (i = 0; i < 120; i++) {
 				fprintf(stream, "#");
@@ -363,7 +363,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.value,(divide(p[i].accel.value,((float)p[i].mass))), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.value, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
+			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.value,(divide(p[i].force.value,((float)p[i].mass))), (radians == 1)?deg_to_rad(p[i].force.angle):p[i].force.angle, p[i].speed.value, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
@@ -371,10 +371,10 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 }	
 
 Vector get_speed(Particle a, float time) {
-	// v = u + at. a = a.accel.accel. t = time. u = a.speed.
+	// v = u + at. a = a.force.force. t = time. u = a.speed.
 	
 	Resolved q = vtof(a.speed);
-	Resolved p = vtof(a.accel);
+	Resolved p = vtof(a.force);
 	
 	float xsp = q.x.value + (divide(p.x.value,a.mass)*time);
 	float ysp = q.y.value + (divide(p.y.value,a.mass)*time);
@@ -397,10 +397,10 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	TestCase particle_collision;
 	for (i = 0; i < count; i ++ ){
 		if (p[i].shown == 1) {
-			temp[i] = p[i].accel;
+			temp[i] = p[i].force;
 			for (o = 0; o < count; o++) {
 			  	if (o != i && p[o].shown == 1) {
-					p[i].accel = balance_vector(p[i].accel, grav_accel(p[i], p[o]));
+					p[i].force = balance_vector(p[i].force, grav_force(p[i], p[o]));
 				}
 			}
 		}
@@ -412,12 +412,12 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	  		particle_collision.is_collision = 0;
 //			for (o = 0; o < count; o ++ ){
 		/*		if (o != i && p[o].shown == 1) {
-					p[i].accel = balance_accel(p[i].accel, grav_accel(p[i], p[o]));
+					p[i].force = balance_force(p[i].force, grav_force(p[i], p[o]));
 				// Eeek. This is using the updated values for the positions in the particles. Try doing this in the first loop with setting temp[i] to prevent this.
 				}
 			}*/
 			/*
-				* Right. We have the balanced accels in the particle accel. The original is in temp. 
+				* Right. We have the balanced forces in the particle force. The original is in temp. 
 				* Unfortunately, it is INCREDIBLY computationally taxing to do is_collide with gravity.
 				* For this reason, and ONLY this reason, we do not use it in this. Instead we are very 
 				* careful, and instead we ASSUME that the person is running this relatively often. Ie,
@@ -429,8 +429,8 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			*/
 			p[i].pos = wait(p[i], waittime);
 			p[i].speed = get_speed(p[i], waittime);
-			tmp = p[i].accel;
-			p[i].accel = temp[i];
+			tmp = p[i].force;
+			p[i].force = temp[i];
 			temp[i] = tmp;
 		}
 	}
@@ -444,9 +444,9 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 					if (maj < (time)) {
 						//Collision (more or less
 						p[o].shown = 0;
-						p[i].accel = balance_accel(p[i].accel, p[o].accel);
+						p[i].force = balance_force(p[i].force, p[o].force);
 						p[i].mass += p[o].mass;
-						p[i].speed = balance_accel(p[i].speed, p[o].speed);
+						p[i].speed = balance_force(p[i].speed, p[o].speed);
 					}*/
 				  	p[i] = after_graph(p[i], p[o]);
 				}
@@ -455,14 +455,14 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 	}
 	for (i = 0; i < count; i++ ){
 		if (p[i].shown == 1) {
-	  		tmp = p[i].accel;
-			p[i].accel = temp[i];
+	  		tmp = p[i].force;
+			p[i].force = temp[i];
 			temp[i] = tmp;
 		}
 	}
 	tabulate_particles(p, count, display_time, CSV_ON, show_headers, radians, output);
 	for (i = 0; i < count; i++) {
-		p[i].accel = temp[i];
+		p[i].force = temp[i];
 	}
 	free(temp);
 	//Make it do collision detection down here.
@@ -481,8 +481,8 @@ Particle string_to_particle(char string[500]) {
 	  	if ((string[i] == 44) || (i == (((int)strlen(string))-1))) {
 		  	switch (buffer_inc) {
 			  	case 0: strcpy(p.name, buffer); break;
-				case 1: p.accel.value = atof(buffer); break;
-				case 2: p.accel.angle = atof(buffer); break;
+				case 1: p.force.value = atof(buffer); break;
+				case 2: p.force.angle = atof(buffer); break;
 				case 3: p.speed.value = atof(buffer); break;
 				case 4: p.speed.angle = atof(buffer); break;
 				case 5: p.pos.x = atof(buffer); break;
@@ -576,7 +576,7 @@ int main(int argc, char * argv[]) {
 	} else {
 		Response p = get_config(file);
 		float qr;
-	//	printf("%f %f %f %f %f %s", p.items[0].pos.x, p.items[0].pos.y, p.items[0].accel.accel, p.items[0].accel.angle, p.items[0].mass, p.items[0].name);
+	//	printf("%f %f %f %f %f %s", p.items[0].pos.x, p.items[0].pos.y, p.items[0].force.force, p.items[0].force.angle, p.items[0].mass, p.items[0].name);
 		for (qr = 0; qr < p.time;) {
 	 		wait_all(p.items, p.length, p.inc, qr, (qr == 0)?1:0, RAD_ON, output);
 			qr += p.inc;

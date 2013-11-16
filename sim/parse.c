@@ -44,8 +44,8 @@ Response get_config(char filename[]) {
 				case '[': r.length++; r.items[r.length].shown = 1; strcpy(r.items[r.length].name, substr(line, 1, strlen(line)-3)); break;
 				case 'X': r.items[r.length].pos.x = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'Y': r.items[r.length].pos.y = atof(substr(line, 2, strlen(line)-2)); break;
-				case 'A': r.items[r.length].accel.angle = atof(substr(line, 2, strlen(line)-2)); break;
-				case 'F': r.items[r.length].accel.value = atof(substr(line, 2, strlen(line)-2)); break;
+				case 'A': r.items[r.length].force.angle = atof(substr(line, 2, strlen(line)-2)); break;
+				case 'F': r.items[r.length].force.value = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'M': r.items[r.length].mass = atoll(substr(line, 2, strlen(line)-2)); break;
 				case 'R': r.items[r.length].radius = atof(substr(line, 2, strlen(line)-2)); break;
 				case 'S': 
