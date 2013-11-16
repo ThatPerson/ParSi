@@ -36,7 +36,7 @@ typedef struct {
 } Position;
 
 typedef struct {
-	float accel;
+	float value;
 	float angle;
 } Vector;
 
@@ -65,7 +65,13 @@ typedef struct {
 
 #include "sim/parse.c"
 
-Vector balance_accel(Vector a, Vector b);
+Vector balance_vector(Vector a, Vector b);
+
+float divide(float a, float b) {
+	if (b == 0)
+		b = 1;
+	return a/b;
+}
 
 float power(float val, int power) {
 	float res = 1;
@@ -94,7 +100,7 @@ float absol(float in) {
 
 Vector new_accel(float accel, float angle) {
 	Vector f;
-	f.accel = accel;
+	f.value = accel;
 	f.angle = angle;
 	return f;
 }
@@ -105,20 +111,20 @@ Resolved vtof(Vector f) {
 	retur.y.angle = 0;
 	
 	if (f.angle >= 0 && f.angle < 90) {
-		retur.x.accel = f.accel * sin(deg_to_rad(f.angle));
-		retur.y.accel = f.accel * cos(deg_to_rad(f.angle));
+		retur.x.value = f.value * sin(deg_to_rad(f.angle));
+		retur.y.value = f.value * cos(deg_to_rad(f.angle));
 	} else if (f.angle >= 90 && f.angle < 180) {
 		f.angle = f.angle - 90;
-		retur.x.accel = f.accel * cos(deg_to_rad(f.angle));
-		retur.y.accel = -f.accel * sin(deg_to_rad(f.angle));
+		retur.x.value = f.value * cos(deg_to_rad(f.angle));
+		retur.y.value = -f.value * sin(deg_to_rad(f.angle));
 	} else if (f.angle >= 180 && f.angle < 270) {
 		f.angle = f.angle - 180;
-		retur.x.accel = -f.accel * sin(deg_to_rad(f.angle));
-		retur.y.accel = -f.accel * cos(deg_to_rad(f.angle));
+		retur.x.value = -f.value * sin(deg_to_rad(f.angle));
+		retur.y.value = -f.value * cos(deg_to_rad(f.angle));
 	} else {
 		f.angle = f.angle - 270;
-		retur.x.accel = -f.accel * cos(deg_to_rad(f.angle));
-		retur.y.accel = f.accel * sin(deg_to_rad(f.angle));
+		retur.x.value = -f.value * cos(deg_to_rad(f.angle));
+		retur.y.value = f.value * sin(deg_to_rad(f.angle));
 	}
 	
 	return retur;
@@ -127,23 +133,23 @@ Resolved vtof(Vector f) {
 Vector ftov(Resolved f) {
 	Vector p;
 	
-	p.accel = sqrt(power(f.x.accel, 2) + power(f.y.accel, 2));
+	p.value = sqrt(power(f.x.value, 2) + power(f.y.value, 2));
 
-	if ((f.x.accel < 0)	&& (f.y.accel < 0)) {
+	if ((f.x.value < 0)	&& (f.y.value < 0)) {
 		// it matches >= 180 < 270
-		p.angle = atan((absol(f.x.accel)/absol(f.y.accel)));
+		p.angle = atan(divide(absol(f.x.value), absol(f.y.value)));
 		p.angle = 180 + rad_to_deg(p.angle);
-	} else if ((f.x.accel < 0) && (f.y.accel >= 0)) {
+	} else if ((f.x.value < 0) && (f.y.value >= 0)) {
 		// then it is in the final one, or > 270
-		p.angle = atan(f.y.accel/absol(f.x.accel));
+		p.angle = atan(divide(f.y.value, absol(f.x.value)));
 		p.angle = 270 + rad_to_deg(p.angle);
-	} else if ((f.x.accel >= 0) && (f.y.accel < 0)) {
+	} else if ((f.x.value >= 0) && (f.y.value < 0)) {
 		// then it is >= 90, < 180
-		p.angle = atan(absol(f.y.accel)/f.x.accel);
+		p.angle = atan(divide(absol(f.y.value), f.x.value));
 		p.angle = 90 + rad_to_deg(p.angle);
 	} else {
 		// then it is the first one, or 0 < x < 90
-		p.angle = atan(f.x.accel/f.y.accel);
+		p.angle = atan(divide(f.x.value,f.y.value));
 		p.angle = rad_to_deg(p.angle);
 	}
 	return p;
@@ -168,11 +174,11 @@ Particle after_graph(Particle q, Particle p) {
 	if (check_collision(p, q) == 1) {
 		// There is a collision
 	  	printf("WE HAVE COLLISION\n");
-	       	pne.accel = p.surface_tension * q.surface_tension * q.accel.accel * q.mass;
+	    pne.value = p.surface_tension * q.surface_tension * q.accel.value;
 		pne.angle = q.accel.angle;
-		resp.accel = balance_accel(resp.accel, pne);
-		pne.accel = (pne.accel / q.accel.accel) * q.speed.accel;
-		resp.speed = balance_accel(resp.speed, pne);	
+		resp.accel = balance_vector(resp.accel, pne);
+		pne.value = (divide(pne.value, q.accel.value)) * q.speed.value;
+		resp.speed = balance_vector(resp.speed, pne);	
 	  	//resp.pos.y = sqrt(p.radius - pow(q.pos.x, 2));
 	}
 	return resp;
@@ -198,12 +204,12 @@ Vector grav_accel(Particle a, Particle b) {
 	float top = 6.67 * a.mass * b.mass;
 	top = top * pow(10, -11);
 	float ma = top/pow(r,2);
-	float accel = ma/a.mass; // Force = Mass * Acceleration, so Acceleration = Force/Mass. Because with this the acceleration given is not the force, it should not affect it as such
+	//float accel = ma/a.mass; // Force = Mass * Acceleration, so Acceleration = Force/Mass. Because with this the acceleration given is not the force, it should not affect it as such
 	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
-	w.x.accel = xdiff;
+	w.x.value = xdiff;
 	w.x.angle = 90;
-	w.y.accel = ydiff;
+	w.y.value = ydiff;
 	w.y.angle = 0;
 	Vector ret = ftov(w);
 	
@@ -217,11 +223,11 @@ Vector grav_accel(Particle a, Particle b) {
 		ret.angle -= 180;
 	}*/
 
-	ret.accel = accel;
+	ret.value = ma;
 	return ret;
 }
 
-Vector balance_accel(Vector a, Vector b) {
+Vector balance_vector(Vector a, Vector b) {
 
 
 	Resolved ax = vtof(a);
@@ -229,25 +235,25 @@ Vector balance_accel(Vector a, Vector b) {
 
 
 	Position new;
-	new.x = ax.x.accel + bx.x.accel;
-	new.y = ax.y.accel + bx.y.accel;
+	new.x = ax.x.value + bx.x.value;
+	new.y = ax.y.value + bx.y.value;
 
 	//printf("New %f %f\n", new.x, new.y);
 
 	Vector result;
 
-	result.accel = sqrt((new.x*new.x)+(new.y*new.y)); // if the values are negative then them times themselves is positive. For it to be under 0, such as sqrt(-1) it would need to be a complex number, hence no validation
+	result.value = sqrt((new.x*new.x)+(new.y*new.y)); // if the values are negative then them times themselves is positive. For it to be under 0, such as sqrt(-1) it would need to be a complex number, hence no validation
 	float tmpangle;
 	//printf("New %f %f\n", absol(new.x), absol(new.y));
 	if (new.x >= 0 && new.y >= 0) {
-		tmpangle = rad_to_deg(atan(absol(new.x)/absol(new.y)));
+		tmpangle = rad_to_deg(atan(divide(absol(new.x),absol(new.y))));
 		// We are in the top right
 	} else if (new.x >= 0 && new.y <= 0) {
-		tmpangle = rad_to_deg(atan(absol(new.y)/absol(new.x))) + 90;
+		tmpangle = rad_to_deg(atan(divide(absol(new.y),absol(new.x)))) + 90;
 	} else if (new.x <= 0 && new.y <= 0) {
-		tmpangle = rad_to_deg(atan(absol(new.x)/absol(new.y))) + 180;
+		tmpangle = rad_to_deg(atan(divide(absol(new.x),absol(new.y)))) + 180;
 	} else if (new.x <= 0 && new.y >= 0) {
-		tmpangle = rad_to_deg(atan(absol(new.y)/absol(new.x))) + 270;
+		tmpangle = rad_to_deg(atan(divide(absol(new.y),absol(new.x)))) + 270;
 	}
 	result.angle = tmpangle;
 	return result;
@@ -265,8 +271,8 @@ Position wait(Particle a, float time) {
 	//xinc = (p.x.accel*time) + ((x.x.accel*time*time)/2);
 	//yinc = (p.y.accel*time) + ((x.y.accel*time*time)/2);
 	// What on earth went on there?
-	xinc = (p.x.accel*time) + ((x.x.accel/2)*(time*time));
-	yinc = (p.y.accel*time) + ((x.y.accel/2)*(time*time));
+	xinc = (p.x.value*time) + (((divide(x.x.value,a.mass)*(time*time))/2));
+	yinc = (p.y.value*time) + (((divide(x.y.value,a.mass)*(time*time))/2));
 	Position l;
 	l.x = a.pos.x + xinc;
 	l.y = a.pos.y + yinc;
@@ -278,7 +284,7 @@ void print_position(Position l) {
 }
 
 void print_accel(Vector i) {
-	printf("Particle\n\tPower: %fN\n\tAngle: %f\n", i.accel, i.angle);
+	printf("Particle\n\tPower: %fN\n\tAngle: %f\n", i.value, i.angle);
 }
 
 int poscmp(Position a, Position b) {
@@ -304,10 +310,10 @@ TestCase is_collision(TestCase q, float within, float precision) {
 		p.a.pos = wait(q.a, i);
 		p.b.pos = wait(q.b, i);
 		//printf("%f\n", i/precision);
-		q.a.pos.x = ceilf(q.a.pos.x * precision) / precision;
-		q.a.pos.y = ceilf(q.a.pos.y * precision) / precision;
-		q.b.pos.x = ceilf(q.b.pos.x * precision) / precision;
-		q.b.pos.y = ceilf(q.b.pos.y * precision) / precision;
+		q.a.pos.x = divide(ceilf(q.a.pos.x * precision), precision);
+		q.a.pos.y = divide(ceilf(q.a.pos.y * precision), precision);
+		q.b.pos.x = divide(ceilf(q.b.pos.x * precision), precision);
+		q.b.pos.y = divide(ceilf(q.b.pos.y * precision), precision);
 		xdiff = p.a.pos.x - p.b.pos.x;
 		xdiff = absol(xdiff);
 		ydiff = p.a.pos.y - p.b.pos.y;
@@ -328,7 +334,7 @@ Particle new_particle(float x, float y, float accel, float angle) {
 	Particle t;
 	t.pos.x = x;
 	t.pos.y = y;
-	t.accel.accel = accel;
+	t.accel.value = accel;
 	t.accel.angle = angle;
 	t.speed.angle = angle;
 	t.shown = 1;
@@ -347,7 +353,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	int i;
 
 	if (headers == 1) {	
-		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Accel", "Force",  "Angle", "Speed", "SAngle", "Mass", "Radius");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Accel",  "Angle", "Speed", "SAngle", "Mass", "Radius");
 		if (csv == 0) {
 			for (i = 0; i < 120; i++) {
 				fprintf(stream, "#");
@@ -357,7 +363,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.accel,(((float)p[i].mass) * p[i].accel.accel), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.accel, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
+			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].accel.value,(divide(p[i].accel.value,((float)p[i].mass))), (radians == 1)?deg_to_rad(p[i].accel.angle):p[i].accel.angle, p[i].speed.value, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
 		} else {
 			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
 		}
@@ -370,13 +376,13 @@ Vector get_speed(Particle a, float time) {
 	Resolved q = vtof(a.speed);
 	Resolved p = vtof(a.accel);
 	
-	float xsp = q.x.accel + (p.x.accel*time);
-	float ysp = q.y.accel + (p.y.accel*time);
+	float xsp = q.x.value + (divide(p.x.value,a.mass)*time);
+	float ysp = q.y.value + (divide(p.y.value,a.mass)*time);
 	
 	
 	Resolved l;
-	l.x.accel = xsp;
-	l.y.accel = ysp;
+	l.x.value = xsp;
+	l.y.value = ysp;
 	l.x.angle = 90;
 	l.y.angle = 0;
 	return ftov(l);
@@ -394,7 +400,7 @@ void wait_all(Particle p[], int count, float time, float display_time, int show_
 			temp[i] = p[i].accel;
 			for (o = 0; o < count; o++) {
 			  	if (o != i && p[o].shown == 1) {
-					p[i].accel = balance_accel(p[i].accel, grav_accel(p[i], p[o]));
+					p[i].accel = balance_vector(p[i].accel, grav_accel(p[i], p[o]));
 				}
 			}
 		}
@@ -475,9 +481,9 @@ Particle string_to_particle(char string[500]) {
 	  	if ((string[i] == 44) || (i == (((int)strlen(string))-1))) {
 		  	switch (buffer_inc) {
 			  	case 0: strcpy(p.name, buffer); break;
-				case 1: p.accel.accel = atof(buffer); break;
+				case 1: p.accel.value = atof(buffer); break;
 				case 2: p.accel.angle = atof(buffer); break;
-				case 3: p.speed.accel = atof(buffer); break;
+				case 3: p.speed.value = atof(buffer); break;
 				case 4: p.speed.angle = atof(buffer); break;
 				case 5: p.pos.x = atof(buffer); break;
 				case 6: p.pos.y = atof(buffer); break;
