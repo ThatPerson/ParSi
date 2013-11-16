@@ -77,20 +77,16 @@ float power(float val, int power) {
 }
 
 float deg_to_rad(float degrees) {
-	// degrees * pi/180
 	return degrees * M_PI / 180;
 }
 
 float rad_to_deg(float radians) {
 	return radians / (M_PI/180);
-
-	//=B2/(D1/180)
 }
 
 float absol(float in) {
 	float new = in;
 	if (in < 0) {
-		//new = new - (2*in); // two times the number would get enough to make up for each side, then - because - - is +. For example, if in = -3, then we get -3 - (-3*2), so -3 - - 6, so -3 + 6, so 3.
 		new = 0 - in;
 	}
 	return new; //If value is +, then we do nothing.
@@ -202,7 +198,7 @@ Vector grav_accel(Particle a, Particle b) {
 	float top = 6.67 * a.mass * b.mass;
 	top = top * pow(10, -11);
 	float ma = top/pow(r,2);
-	float accel = ma/a.mass;
+	float accel = ma/a.mass; // Force = Mass * Acceleration, so Acceleration = Force/Mass. Because with this the acceleration given is not the force, it should not affect it as such
 	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
 	w.x.accel = xdiff;
