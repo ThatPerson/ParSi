@@ -1,4 +1,4 @@
-      Time       Name          X          Y      Force      force      Angle      Speed     SAngle       Mass     Radius
+      Time       Name          X          Y      Force      Accel      Angle      Speed     SAngle       Mass     Radius
 ########################################################################################################################
          0     Cannon        1.4        4.3    2.7E-15    2.7E-16       0.79         45       0.31         10         20
          0      Earth         50         50    2.7E-15    2.7E-17        3.9    2.7E-18        3.9      1E+02          5

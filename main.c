@@ -353,7 +353,7 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	int i;
 
 	if (headers == 1) {	
-		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "force",  "Angle", "Speed", "SAngle", "Mass", "Radius");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Accel",  "Angle", "Speed", "SAngle", "Mass", "Radius");
 		if (csv == 0) {
 			for (i = 0; i < 120; i++) {
 				fprintf(stream, "#");
