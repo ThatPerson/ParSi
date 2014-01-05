@@ -11,11 +11,6 @@ It currently supports the following:
 * resolving a force into x and y
 * resolving x and y into a force
 * collision detection
-
-In a upcoming version in the gravity branch I have added gravity support. This allows you to have true to life orbits, etc.
+* gravity
 
 This all works in a 2D plane
-
-More updated information can be found here:
-
-http://bentatman.co.uk/test/proma/
