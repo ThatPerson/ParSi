@@ -565,8 +565,31 @@ int main(int argc, char * argv[]) {
 			//p[0] = string_to_particle("Cannon,9.8,180,4,45,25,10,0,");
 			//p[1] = string_to_particle("Simulation,9.8,180,17.34705,0,11.879393,0,0,");
 			//p[2] = string_to_particle("Cannonball,9.8,180,8,45,0,25,0,");
-			p[0] = string_to_particle("Large,0,0,0,0,0,0,1000000000000000000000");
-			p[1] = string_to_particle("Small,0,0,0,0,50,50,10000000000000");
+
+
+			strcpy(p[0].name, "Earth");
+			p[0].speed.value = 0;
+			p[0].speed.angle = 0;
+			p[0].force.value = 0;
+			p[0].force.angle = 0;
+			p[0].pos.x = 0;
+			p[0].pos.y = 0;
+			p[0].surface_tension = 0.5;
+			p[0].mass = 5.97*pow(10, 24);
+			p[0].shown = 1;
+			p[0].radius = 6367.5;
+			
+			strcpy(p[1].name, "ISS");
+			p[1].speed.value = 7660;
+			p[1].speed.angle = 90;
+			p[1].force.value = 0;
+			p[1].force.angle = 0;
+			p[1].pos.x = 0;
+			p[1].pos.y = p[0].radius + 423.9;
+			p[1].surface_tension = 1;
+			p[1].mass = 450000;
+			p[1].shown = 1;
+			p[1].radius = 0.1085;
 		  	curr = 2;
 		}
 		int i;
