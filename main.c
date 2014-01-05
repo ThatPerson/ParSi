@@ -188,7 +188,7 @@ Vector grav_force(Particle a, Particle b) {
 	float xdiff = b.pos.x - a.pos.x;
 	float ydiff = b.pos.y - a.pos.y;
 
-	float r = (xdiff * xdiff) + (ydiff * ydiff);
+	float r = (xdiff * xdiff) + (ydiff * ydiff); 
 	//Simple bit of pythag to get the difference
 	//For this next bit, we use the fact that F = ma
 	// and a = MG/r (We did not take the sqrt of the pythag
@@ -203,7 +203,7 @@ Vector grav_force(Particle a, Particle b) {
 	*/
 	float top = 6.67 * a.mass * b.mass;
 	top = top * pow(10, -11);
-	float ma = top/pow(r,2);
+	float ma = top/r;
 	//float force = ma/a.mass; // Force = Mass * forceeration, so forceeration = Force/Mass. Because with this the forceeration given is not the force, it should not affect it as such
 	// I believe we need to work on this bit, as it currentl pulls both in the same direction, which is not good.
 	Resolved w;
