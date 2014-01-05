@@ -349,11 +349,47 @@ Position new_position(float x, float y) {
 	return p;
 }
 
+float distance_between(Particle a, Particle b) {
+	float x_dist = absol(a.pos.x - b.pos.x);
+	float y_dist = absol(a.pos.y - b.pos.y);
+	
+	return sqrt((x_dist * x_dist) + (y_dist * y_dist)) - (a.radius + b.radius);
+}
+
+int get_closest_particle(Particle p[], int count, int from) {
+	int current;
+	int current_p;
+	if (from != 0) {
+		current = distance_between(p[from], p[0]);
+		current_p = 0;
+	} else {
+		current = distance_between(p[from], p[1]);
+		current_p = 1;
+	}
+	int i, dist;
+	for (i = 0; i < count; i++) {
+		if (i != from) {
+			dist = distance_between(p[from], p[i]);
+			if (dist < current) {
+				current_p = i;
+				current = dist;
+			}
+		}
+	}
+	
+	return current_p;
+}
+
 void tabulate_particles(Particle p[], int count, float time, int csv, int headers, int radians, FILE * stream) {
 	int i;
 
+	/*
+		TODO: Make it output what SOI it is in, and the distance from the surface of it.
+	*/
+	int l;
+	float distanceb;
 	if (headers == 1) {	
-		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "Time", "Name", "X", "Y", "Force", "Accel",  "Angle", "Speed", "SAngle", "Mass", "Radius");
+		fprintf(stream, (csv == 0)?"%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s %s %s\n", "Time", "Name", "X", "Y", "Force", "Accel",  "Angle", "Speed", "SAngle", "Mass", "Radius", "Neighbour", "NDistance");
 		if (csv == 0) {
 			for (i = 0; i < 120; i++) {
 				fprintf(stream, "#");
@@ -363,9 +399,11 @@ void tabulate_particles(Particle p[], int count, float time, int csv, int header
 	}
 	for (i = 0; i < count; i++) {
 		if (p[i].shown == 1) {
-			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G, %g\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.value,(divide(p[i].force.value,((float)p[i].mass))), (radians == 1)?deg_to_rad(p[i].force.angle):p[i].force.angle, p[i].speed.value, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius);
+			l = get_closest_particle(p, count, i);
+			distanceb = distance_between(p[l], p[i]);
+			fprintf(stream,(csv == 0)?"%10.2G %10s %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2G %10.2g %10s %10.2G\n":"%f,%s,%f,%f,%f,%G,%f,%f,%f,%G,%g,%s,%G\n", time, p[i].name, p[i].pos.x, p[i].pos.y, p[i].force.value,(divide(p[i].force.value,((float)p[i].mass))), (radians == 1)?deg_to_rad(p[i].force.angle):p[i].force.angle, p[i].speed.value, (radians == 1)?deg_to_rad(p[i].speed.angle):p[i].speed.angle,(p[i].mass), p[i].radius, p[l].name, distanceb);
 		} else {
-			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-");
+			fprintf(stream,(csv == 0)?"%10.2f %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n":"%f,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", time, p[i].name, "-", "-", "-", "-", "-","-","-","-", "-", "-");
 		}
 	}
 }	
